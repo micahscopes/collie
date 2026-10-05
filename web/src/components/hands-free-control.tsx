@@ -1,10 +1,10 @@
-import { Mic } from "lucide-react";
+import { AudioLines, Mic } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useLocale } from "@/hooks/use-locale";
 import { t } from "@/lib/i18n";
-import { setHandsFreeEnabled, useHandsFree, useSttCapability } from "@/lib/stt";
+import { setHandsFreeEnabled, setVoiceModeEnabled, useHandsFree, useSttCapability, useVoiceMode } from "@/lib/stt";
 
 // The one voice SETTING (ADR 0029). Everything else about speech-to-text is an operator act on the
 // keyboard — `collie stt setup` mints the credential, exactly as `collie pair` does — so this page
@@ -23,6 +23,7 @@ export function HandsFreeControl() {
   useLocale();
   const stt = useSttCapability();
   const enabled = useHandsFree();
+  const voiceMode = useVoiceMode();
   if (stt === null) return null;
 
   return (
@@ -42,6 +43,23 @@ export function HandsFreeControl() {
             checked={enabled}
             onCheckedChange={setHandsFreeEnabled}
             aria-label={t("settings.handsFree.ariaLabel")}
+          />
+        </div>
+      </div>
+      {/* Voice mode: the composer as one big talk button (components/voice-bar.tsx). */}
+      <div className="flex items-center justify-between gap-4 border-t border-border p-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <AudioLines className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0">
+            <div className="font-medium">{t("settings.voiceMode.title")}</div>
+            <p className="text-sm text-muted-foreground">{t("settings.voiceMode.description")}</p>
+          </div>
+        </div>
+        <div className="flex h-6 w-11 shrink-0 items-center justify-center">
+          <Switch
+            checked={voiceMode}
+            onCheckedChange={setVoiceModeEnabled}
+            aria-label={t("settings.voiceMode.ariaLabel")}
           />
         </div>
       </div>

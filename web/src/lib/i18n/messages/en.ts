@@ -87,6 +87,16 @@ export const en = {
   "settings.handsFree.description":
     "Send the transcript immediately instead of putting it in the message box. Off by default — you normally read what was heard before it reaches the terminal.",
   "settings.handsFree.ariaLabel": "Hands-free voice: send transcript immediately",
+  "composer.voice.idle": "Hold to talk, or tap",
+  "composer.voice.recording": "{elapsed} · release or tap to send",
+  "composer.voice.transcribing": "Sending…",
+  "composer.voice.waitingForMic": "Waiting for the microphone…",
+  "composer.voice.discard": "Discard recording",
+  "composer.voice.keyboard": "Type instead",
+  "composer.voice.enter": "Voice mode",
+  "settings.voiceMode.title": "Voice mode",
+  "settings.voiceMode.description": "Replace the message box with one big talk button. Hold to talk and let go to send, or tap to start and tap again to send.",
+  "settings.voiceMode.ariaLabel": "Voice mode: one big talk button",
 
   // --- settings.push ---
   "settings.push.title": "Push notifications",

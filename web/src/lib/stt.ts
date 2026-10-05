@@ -168,3 +168,52 @@ export function __resetHandsFree(): void {
   handsFree = false;
   handsFreeListeners.clear();
 }
+
+// ── Voice mode: the composer as one big talk button ──────────────────────────────────────────────
+//
+// A per-device LAYOUT choice, beside hands-free and of the same shape. With it on, the composer row
+// is a single wide button (components/voice-bar.tsx): hold to talk and release to send, or tap to
+// start and tap again to send. A finished clip takes the hands-free path, with the same guards and
+// the same fall-backs into the draft (composer.tsx § acceptTranscript). OFF by default.
+
+const VOICE_MODE_KEY = "collie:voice-mode:v1";
+
+let voiceMode = loadVoiceMode();
+const voiceModeListeners = new Set<() => void>();
+
+function loadVoiceMode(): boolean {
+  try {
+    return localStorage.getItem(VOICE_MODE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function voiceModeEnabled(): boolean {
+  return voiceMode;
+}
+
+export function setVoiceModeEnabled(on: boolean): void {
+  voiceMode = on;
+  try {
+    localStorage.setItem(VOICE_MODE_KEY, on ? "1" : "0");
+  } catch {
+    // The in-memory value still applies for this session.
+  }
+  for (const fn of voiceModeListeners) fn();
+}
+
+function subscribeVoiceMode(cb: () => void): () => void {
+  voiceModeListeners.add(cb);
+  return () => voiceModeListeners.delete(cb);
+}
+
+export function useVoiceMode(): boolean {
+  return useSyncExternalStore(subscribeVoiceMode, voiceModeEnabled, voiceModeEnabled);
+}
+
+/** Test helper, as `__resetHandsFree`. */
+export function __resetVoiceMode(): void {
+  voiceMode = false;
+  voiceModeListeners.clear();
+}

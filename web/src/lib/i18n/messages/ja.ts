@@ -67,6 +67,16 @@ export const ja: Dictionary = {
   "settings.handsFree.description":
     "音声認識テキストを入力欄に挿入せず、そのまま送信します。デフォルトはオフです。送信前の確認を省略します。",
   "settings.handsFree.ariaLabel": "ハンズフリー音声入力: 音声認識結果を即時送信",
+  "composer.voice.idle": "長押しで話す、またはタップ",
+  "composer.voice.recording": "{elapsed} · 離すかタップで送信",
+  "composer.voice.transcribing": "送信中…",
+  "composer.voice.waitingForMic": "マイクを待っています…",
+  "composer.voice.discard": "録音を破棄",
+  "composer.voice.keyboard": "入力に切り替え",
+  "composer.voice.enter": "音声モード",
+  "settings.voiceMode.title": "音声モード",
+  "settings.voiceMode.description": "入力欄を大きな話すボタンに置き換えます。長押しで話して離すと送信、またはタップで開始してもう一度タップで送信します。",
+  "settings.voiceMode.ariaLabel": "音声モード: 大きな話すボタン",
 
   // --- settings.push ---
   "settings.push.title": "プッシュ通知",

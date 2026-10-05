@@ -68,6 +68,16 @@ export const ko: Dictionary = {
   "settings.handsFree.description":
     "음성 인식 텍스트를 입력창에 넣지 않고 터미널로 즉시 전송합니다. 오인식을 방지하기 위해 기본값은 꺼짐입니다.",
   "settings.handsFree.ariaLabel": "음성 직접 전송: 인식된 텍스트 즉시 전송",
+  "composer.voice.idle": "길게 눌러 말하기 또는 탭",
+  "composer.voice.recording": "{elapsed} · 손을 떼거나 탭하여 전송",
+  "composer.voice.transcribing": "전송 중…",
+  "composer.voice.waitingForMic": "마이크를 기다리는 중…",
+  "composer.voice.discard": "녹음 삭제",
+  "composer.voice.keyboard": "입력으로 전환",
+  "composer.voice.enter": "음성 모드",
+  "settings.voiceMode.title": "음성 모드",
+  "settings.voiceMode.description": "입력란을 큰 말하기 버튼으로 바꿉니다. 길게 눌러 말하고 손을 떼면 전송되며, 탭하여 시작하고 다시 탭하면 전송됩니다.",
+  "settings.voiceMode.ariaLabel": "음성 모드: 큰 말하기 버튼",
 
   // --- settings.push ---
   "settings.push.title": "푸시 알림",

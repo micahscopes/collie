@@ -68,6 +68,16 @@ export const de: Dictionary = {
   "settings.handsFree.description":
     "Transkript sofort senden, statt es im Eingabefeld abzulegen. Standardmäßig deaktiviert, um Eingaben vor dem Senden an das Terminal prüfen zu können.",
   "settings.handsFree.ariaLabel": "Freisprechen: Transkript sofort senden",
+  "composer.voice.idle": "Halten zum Sprechen oder tippen",
+  "composer.voice.recording": "{elapsed} · loslassen oder tippen zum Senden",
+  "composer.voice.transcribing": "Wird gesendet…",
+  "composer.voice.waitingForMic": "Warte auf das Mikrofon…",
+  "composer.voice.discard": "Aufnahme verwerfen",
+  "composer.voice.keyboard": "Stattdessen tippen",
+  "composer.voice.enter": "Sprachmodus",
+  "settings.voiceMode.title": "Sprachmodus",
+  "settings.voiceMode.description": "Ersetzt das Eingabefeld durch eine große Sprechtaste. Halten zum Sprechen, loslassen zum Senden, oder einmal tippen zum Starten und noch einmal zum Senden.",
+  "settings.voiceMode.ariaLabel": "Sprachmodus: eine große Sprechtaste",
 
   // --- settings.push ---
   "settings.push.title": "Push-Benachrichtigungen",

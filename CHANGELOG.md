@@ -23,6 +23,10 @@ Running a crew? Update the lead first; members follow on their own. Details:
 
 ## [Unreleased]
 
+### Added
+
+- **Voice mode turns the message box into one big talk button.** Hold it to talk and let go to send, or tap once to start and once more to send. A keyboard button beside it goes back to typing, and a small button in an empty message box comes back. Turn it on there or under Settings, next to Hands-free voice. The transcript is sent through the same checks as a typed reply, and lands in the box instead when a dialog is up.
+
 ### Changed
 
 - **The phone shows a change in well under a second.** While Collie is open, the bridge watches the open pane and the herd next to the multiplexer and nudges the phone the moment either moves, so a finished turn or a new dialog no longer waits up to six seconds for the next poll. Polling still runs underneath, and nothing changes behind an Access gate or on a crew peer's pane. `COLLIE_PULSE_MS` sets how often the bridge looks (300 ms).

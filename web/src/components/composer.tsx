@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import { createPortal } from "react-dom";
 import type { ChangeEvent, ClipboardEvent, CSSProperties, ReactNode } from "react";
 import { useRevalidator } from "react-router";
-import { Check, FileText, Image, Keyboard, Loader2, Mic, Paperclip, Send, Settings2, Slash, Square, Terminal, X, Zap } from "lucide-react";
+import { AudioLines, Check, FileText, Image, Keyboard, Loader2, Mic, Paperclip, Send, Settings2, Slash, Square, Terminal, X, Zap } from "lucide-react";
 
 import { applyDraftFontSize, fontStack, inputFocusZoomsPage } from "@/hooks/use-display-prefs";
 import type { DisplayPrefs } from "@/hooks/use-display-prefs";
@@ -59,8 +59,9 @@ import { TerminalDraftPreview } from "@/components/terminal-draft-preview";
 import { scopeKey, type Scope } from "@/lib/scope";
 import { DirectTypingStrip } from "@/components/direct-typing-strip";
 import { RecordingStrip } from "@/components/recording-strip";
+import { VoiceBar } from "@/components/voice-bar";
 import { useSttRecorder } from "@/hooks/use-stt-recorder";
-import { useHandsFree, useSttCapability } from "@/lib/stt";
+import { setVoiceModeEnabled, useHandsFree, useSttCapability, useVoiceMode } from "@/lib/stt";
 import { NoEchoNotice } from "@/components/no-echo-notice";
 
 export interface ComposerHandle {
@@ -584,6 +585,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
   // is the feature being off: no button at all, not a disabled one.
   const stt = useSttCapability();
   const handsFree = useHandsFree();
+  // Voice mode is a layout, and it only applies where a microphone works: no provider, or a browser
+  // that cannot record, shows the ordinary field whatever the setting says.
+  const voiceMode = useVoiceMode();
   // The microphone is armed state, and it obeys the same rules as "Type into terminal": it dies on a
   // pane switch, on any composer lock, and on a hidden page, and it is never persisted. The clip is
   // DISCARDED on each of those, not finished — see the hook's header for why an orphaned transcript
@@ -618,6 +622,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
   // A chip is something to send (ADR 0060), so a box holding only chips shows Send, not the mic.
   const hasDraft = input.trim() !== "" || attachments.length > 0;
   const micIsPrimary = stt !== null && !direct.active && !hasDraft;
+  const voiceActive = voiceMode && stt?.available === true && !direct.active;
 
   /**
    * What happens to a finished transcript.
@@ -639,8 +644,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
    */
   function acceptTranscript(transcript: string) {
     const draftEmpty = inputValueRef.current.trim() === "" && attachmentsRef.current.length === 0;
+    // Voice mode is hands-free by construction: the big button has no draft to review in.
     const mayHandsFree =
-      handsFree && draftEmpty && noEchoRef.current === null && !locked && !dialogPresent;
+      (handsFree || voiceActive) && draftEmpty && noEchoRef.current === null && !locked && !dialogPresent;
     if (mayHandsFree) {
       void send(transcript, false);
       return;
@@ -1659,13 +1665,13 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
             dictating), instead of two boxes fighting over the same row. Both are CONDITIONS with
             their own controls — Stop, and the recorder's separate ✕ — so neither belongs in the top
             pills, which carry no controls at all. */}
-        <Collapse open={direct.active || (recorder.busy && recorder.phase !== "requesting")}>
+        <Collapse open={direct.active || (!voiceActive && recorder.busy && recorder.phase !== "requesting")}>
           {/* Armed indicator for direct typing, deliberately NOT only on the button and textarea —
               see the component. */}
           {direct.active && <DirectTypingStrip onStop={() => direct.deactivate()} />}
           {/* The microphone's armed strip. Stop and ✕ are different actions: one transcribes the
               clip, the other throws it away. */}
-          {recorder.busy && recorder.phase !== "requesting" && (
+          {!voiceActive && recorder.busy && recorder.phase !== "requesting" && (
             <RecordingStrip
               elapsed={recorder.elapsedLabel}
               transcribing={recorder.phase === "transcribing"}
@@ -1731,303 +1737,326 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
             round, docked at the field's right edge, and it cost 60px of typing width on a crew,
             out of the widest part of the composer. It answers the same question from the belt
             above, which is equally at the write surface and costs the draft nothing. */}
-        <div
-          className={cn(
-            "relative flex items-end gap-1 rounded-xl border border-input bg-background p-1 focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
-            // Chips take a line of their own ABOVE the row (ADR 0060). `flex-wrap` plus a
-            // full-basis strip does that without re-parenting the field, so the textarea is never
-            // remounted (and never loses its caret) when the first chip arrives. With no chips the
-            // class is absent and the box is exactly the one row it was.
-            attachments.length > 0 && "flex-wrap",
-            // A composer nobody may write to says so as a surface, not just as a placeholder:
-            // the fill recedes and both buttons in the box are disabled anyway.
-            locked && "bg-muted/40",
-            // Armed "Type into terminal". The tint was on the field while the field wore the
-            // frame; it follows the frame.
-            direct.active && "border-primary focus-within:border-primary focus-within:ring-primary",
-          )}
-        >
-          {attachments.length > 0 && (
-            // The strip scrolls sideways when the chips outrun the box; `pt-1 px-1` is room for
-            // the corner badge and the x, which stand 4px outside each chip.
-            <ul
-              aria-label={translate("composer.attach.listAria")}
-              className="flex w-full basis-full gap-2 overflow-x-auto px-1 pt-1 pb-0.5"
-            >
-              {attachments.map((attachment) => (
-                <AttachmentChip
-                  key={attachment.n}
-                  attachment={attachment}
-                  onRemove={() => removeAttachment(attachment)}
-                  disabled={sending}
-                  inFront={markerMissing(input, attachment)}
-                />
-              ))}
-            </ul>
-          )}
-          <ChatInput
-            ref={inputRef}
-            value={direct.active ? direct.value : input}
-            onChange={
-              direct.active
-                ? direct.onChange
-                : (e) => {
-                    rememberCaret(e);
-                    updateInput(e.target.value);
-                  }
-            }
-            onSelect={direct.active ? undefined : rememberCaret}
-            onBlur={direct.active ? undefined : rememberCaret}
-            onCompositionStart={direct.active ? direct.onCompositionStart : undefined}
-            onCompositionEnd={direct.active ? direct.onCompositionEnd : undefined}
-            onKeyDown={
-              direct.active
-                ? direct.onKeyDown
-                : (e) => {
-                    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault();
-                      onSendClick();
-                    }
-                  }
-            }
-            onPaste={onPasteFile}
-            placeholder={
-              gone
-                ? translate("composer.placeholder.gone")
-                : readOnly
-                  ? translate("composer.placeholder.readOnly")
-                  : // Names the machine, because on a crew "why can't I type?" has two possible
-                    // answers and only one of them is about this device.
-                    hostBlock
-                    ? hostBlock
-                    : // The multiplexer cannot type here at all — its own words where it gave any, so
-                      // the placeholder says what is true of THIS terminal rather than blaming the app.
-                      missingSend !== null
-                      ? missingSend.note || translate("composer.placeholder.noMuxSend")
-                    : direct.active
-                      ? translate("composer.placeholder.direct")
-                      : isShell
-                        ? translate("composer.placeholder.shell")
-                        : translate("composer.placeholder.reply")
-            }
-            autoCorrect={direct.active ? "off" : undefined}
-            spellCheck={direct.active ? false : undefined}
+        {/* VOICE MODE (lib/stt.ts): the row is one big talk button instead of the field. Only where a
+            microphone actually works, and never while "Type into terminal" is armed, which owns the
+            field. */}
+        {voiceActive ? (
+          <VoiceBar recorder={recorder} enabled={!locked} onKeyboard={() => setVoiceModeEnabled(false)} />
+        ) : (
+          <div
             className={cn(
-              // `flex-1 min-w-0`: the field takes whatever width the two buttons beside it leave,
-              // and `min-w-0` is what lets it go NARROWER than its content asks. A flex item's
-              // automatic minimum width is its min-content width, and `field-sizing-content` turns
-              // that into a laid-out one, so without it a long host path (typed or pasted; an upload
-              // puts only its short marker here since ADR 0060) would widen the field and push the
-              // primary action off the right edge (`wrap-anywhere` in chat-input.tsx
-              // stops the same thing at the source; the two are independent and both stay).
-              //
-              // `py-1.5 min-h-9 pl-2` centre ONE line of the draft against the 36px buttons on the
-              // same row, and claim no more: an empty composer is one button row tall. `min-h-9` is
-              // that one row, not a second one (the field is `box-border`, so the padding is inside
-              // it), and it keeps a smaller draft size from leaving the text a few pixels low.
-              //
-              // `pl-2`, AND ONLY ON THE LEFT. The field is the box's first child now, sitting
-              // directly against the box's own `p-1`, so without an inset of its own the text would
-              // start 4px from the border — the box's padding alone, with nothing of the field's to
-              // add to it. Attach used to stand there and supplied that room as its own width; now
-              // that it has moved beside Send, the field pays for the left margin itself instead.
-              //
-              // NO `pr-*`, AND NOTHING MAY ADD ONE. It was `pr-11`, the 44px strip the attach button
-              // needed while it was tucked into the field's corner. The buttons are siblings of the
-              // field now, so nothing inside the field needs a strip kept clear for either of them —
-              // the field's right side takes no padding of its own, and the box's `gap-1` to attach
-              // is what keeps the text off it.
-              "min-w-0 flex-1 min-h-9 pl-2 py-1.5",
-              // The draft is terminal-bound text, so the field wears the TERMINAL face — the same
-              // family the mirror above it renders in, not the app's chrome face. `font-mono` is
-              // the mirror's own default; the style below follows the operator's mirror-family
-              // choice (Settings → Terminal font), exactly as the mirror itself does.
-              //
-              // THE SIZE IS ITS OWN SETTING (Settings → Terminal font → Draft text), and it is not
-              // the mirror's number: the mirror is output you scan, the draft is a sentence you are
-              // writing. It used to be pinned to the primitive's 16px — not as a choice, but because
-              // a sub-16px focused input makes iOS Safari zoom the whole page and never zoom back.
-              // That fact is now handled where it belongs, as a floor inside `applyDraftFontSize`,
-              // so every other browser gets the smaller default the operator asked for.
-              "font-mono",
+              "relative flex items-end gap-1 rounded-xl border border-input bg-background p-1 focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
+              // Chips take a line of their own ABOVE the row (ADR 0060). `flex-wrap` plus a
+              // full-basis strip does that without re-parenting the field, so the textarea is never
+              // remounted (and never loses its caret) when the first chip arrives. With no chips the
+              // class is absent and the box is exactly the one row it was.
+              attachments.length > 0 && "flex-wrap",
+              // A composer nobody may write to says so as a surface, not just as a placeholder:
+              // the fill recedes and both buttons in the box are disabled anyway.
+              locked && "bg-muted/40",
+              // Armed "Type into terminal". The tint was on the field while the field wore the
+              // frame; it follows the frame.
+              direct.active && "border-primary focus-within:border-primary focus-within:ring-primary",
             )}
-            // Built above, where the two halves and their reasons sit together.
-            style={draftStyle}
-            disabled={locked}
-            rows={1}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              TOOLBAR_TAP_TARGET,
-              "size-9 rounded-full text-muted-foreground",
-              // The press echo, in the tone this app already uses for "your press landed" —
-              // `variant="default"`, which is what a tapped quick reply and a busy dialog option
-              // both flip to. It was `bg-accent` first, and that was a token chosen by name
-              // rather than by looking: in the dark theme `accent` resolves to oklch(0.269),
-              // which is the SAME value as `muted` and sits 0.06 of lightness above the card it
-              // is drawn on. Measured through a real tap, it faded in over 180ms, held for 40,
-              // and faded out — a flash nobody could see on a phone. `primary` is oklch(0.922).
-              //
-              // `duration-0` on the way IN, and the base duration on the way out. A press has to
-              // answer immediately or it is not answering the press; the release is the part that
-              // wants easing. Removing both classes in one commit is what lets the exit animate.
-              // Lit for the press, and then for as long as the menu it opened is standing: the
-              // menu is anchored above rather than over the button precisely so this can be seen,
-              // and a trigger that went dark under its own open menu would waste that.
-              (pressed || picking) && "scale-95 bg-primary text-primary-foreground duration-0",
-            )}
-            disabled={uploading || locked || direct.active}
-            onPointerDown={(e) => e.preventDefault()}
-            onClick={() => {
-              echoAttachPress();
-              if (asksWhich) setPicking(true);
-              else photoRef.current?.click();
-            }}
-            aria-label={translate("composer.attach.aria")}
-            aria-haspopup="dialog"
-            aria-expanded={asksWhich ? picking : undefined}
           >
-            {uploading ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Paperclip className="size-4" />
+            {attachments.length > 0 && (
+              // The strip scrolls sideways when the chips outrun the box; `pt-1 px-1` is room for
+              // the corner badge and the x, which stand 4px outside each chip.
+              <ul
+                aria-label={translate("composer.attach.listAria")}
+                className="flex w-full basis-full gap-2 overflow-x-auto px-1 pt-1 pb-0.5"
+              >
+                {attachments.map((attachment) => (
+                  <AttachmentChip
+                    key={attachment.n}
+                    attachment={attachment}
+                    onRemove={() => removeAttachment(attachment)}
+                    disabled={sending}
+                    inFront={markerMissing(input, attachment)}
+                  />
+                ))}
+              </ul>
             )}
-          </Button>
-          {/* The picker, anchored to the BOX so it opens above the whole shape rather than over
-              the button that opened it (ui/anchored-menu.tsx carries the measurement, and the
-              box's own `relative` is the anchor). It is not anchored to the attach button itself
-              even now that attach stands near the box's own right edge: the panel is `right-0
-              min-w-44` against its anchor, and the gap between attach and that edge is NOT fixed —
-              the primary action beside it is a size-9 icon square most of the time but widens into
-              a text button ("Type anyway?" / "Really send?") the moment a confirm is armed, which
-              would slide the menu sideways if it followed the button instead of the box. Anchoring
-              to the box keeps the picker's own right edge pinned to the box's right edge no matter
-              which shape the primary action is wearing.
-              Two rows, no confirm, each one opens a native picker, which is its own decision
-              point. The menu closes BEFORE the click so it is not left standing behind the
-              system UI, and the click still counts as the user gesture the browser requires
-              because both happen in this one handler. */}
-          <AnchoredMenu
-            open={picking}
-            onClose={() => setPicking(false)}
-            label={translate("composer.attach.title")}
-          >
-            <ActionRow
-              icon={<Image aria-hidden="true" className="size-4 shrink-0" />}
-              label={translate("composer.attach.photos")}
-              onClick={() => {
-                setPicking(false);
-                photoRef.current?.click();
-              }}
-            />
-            <ActionRow
-              icon={<FileText aria-hidden="true" className="size-4 shrink-0" />}
-              label={translate("composer.attach.files")}
-              onClick={() => {
-                setPicking(false);
-                fileRef.current?.click();
-              }}
-            />
-          </AnchoredMenu>
-          {!direct.active && forcingSend ? (
-            // The pre-flight refused and the user is being offered the override. Labelled for what it
-            // actually does — TYPE the text into whatever is on screen — not "send", because the
-            // submit key is still conditional on the verify step behind it.
-            //
-            // NOT a `Collapse`, and that is not an exception to the rule above. The explanation of
-            // WHY the send was refused is already in the top pills — send() publishes it through
-            // `composer.status.tapAgainToType`, carrying the adapter's own reason — so there is no
-            // in-flow strip here to animate. What is left is one control swapped for another in a
-            // slot that already exists, on the horizontal axis; `Collapse` animates a row's HEIGHT,
-            // so wrapping it would animate nothing and add a wrapper between the flex row and its
-            // child. §2 is kept by the button box being the same height in all four branches.
-            //
-            // The two confirm branches are the only ones that carry a WORD, so they are the only
-            // ones that are not square: `h-9` to match the round faces beside them, and `shrink-0`
-            // keeps the word whole; the field is the one flex item that gives up width for it.
-            <Button
-              variant="destructive"
-              className={cn(TOOLBAR_TAP_TARGET, "h-9 shrink-0 rounded-md px-3 text-sm font-semibold")}
-              onClick={onSendClick}
-              disabled={locked || !hasDraft || sending}
-              aria-label={translate("composer.send.typeAnyway")}
-            >
-              {translate("composer.send.typeAnyway")}
-            </Button>
-          ) : !direct.active && confirmingSend ? (
-            <Button
-              variant="destructive"
-              className={cn(TOOLBAR_TAP_TARGET, "h-9 shrink-0 rounded-md px-3 text-sm font-semibold")}
-              onClick={onSendClick}
-              disabled={locked || !hasDraft || sending}
-              aria-label={translate("composer.send.reallySend")}
-            >
-              {translate("composer.send.reallySend")}
-            </Button>
-          ) : micIsPrimary ? (
-            // THE MICROPHONE IS THE PRIMARY ACTION WHILE THE BOX IS EMPTY, and becomes Send the
-            // moment there is anything to send. It used to be a second, permanent control tucked
-            // inside the field beside the attach button — deliberately, to avoid a split primary
-            // action. The v1 beta said that reads the workflow wrong: you either dictate a message
-            // or you type one, and nobody dictates into the middle of a draft. So the field paid
-            // 36px of its width, on every render, for a control that is only ever wanted on an empty
-            // box. An empty box has no Send either (`send` refuses a blank value), so this branch
-            // takes over a button that could do nothing anyway — it replaces no capability.
-            <Button
-              size="icon"
-              variant={recorder.busy ? "destructive" : "default"}
-              className={cn(TOOLBAR_TAP_TARGET, "size-9 shrink-0 rounded-full")}
-              disabled={!stt.available || locked || sending || recorder.phase === "transcribing"}
-              aria-pressed={recorder.busy}
-              // The bridge's own words when it cannot serve — the operator's next move is on the
-              // host, so the button says what is wrong rather than just refusing.
-              aria-label={
-                !stt.available
-                  ? (stt.reason ?? translate("composer.mic.unavailable"))
-                  : recorder.phase === "recording"
-                    ? translate("composer.mic.stopAria")
-                    : translate("composer.mic.recordAria")
-              }
-              title={stt.available ? undefined : stt.reason}
-              onPointerDown={(e) => e.preventDefault()}
-              onClick={() => (recorder.phase === "recording" ? recorder.stopAndSend() : recorder.start())}
-            >
-              {recorder.phase === "transcribing" ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : recorder.phase === "recording" ? (
-                <Square className="size-4 fill-current" />
-              ) : (
-                <Mic className="size-4" />
-              )}
-            </Button>
-          ) : (
-            <Button
-              size="icon"
-              className={cn(TOOLBAR_TAP_TARGET, "size-9 shrink-0 rounded-full")}
-              onClick={direct.active ? () => direct.deactivate() : onSendClick}
-              disabled={locked || sending}
-              aria-label={
+            <ChatInput
+              ref={inputRef}
+              value={direct.active ? direct.value : input}
+              onChange={
                 direct.active
-                  ? translate("composer.send.stopTypingAria")
-                  : translate("composer.send.sendAria")
+                  ? direct.onChange
+                  : (e) => {
+                      rememberCaret(e);
+                      updateInput(e.target.value);
+                    }
               }
-              aria-pressed={direct.active}
+              onSelect={direct.active ? undefined : rememberCaret}
+              onBlur={direct.active ? undefined : rememberCaret}
+              onCompositionStart={direct.active ? direct.onCompositionStart : undefined}
+              onCompositionEnd={direct.active ? direct.onCompositionEnd : undefined}
+              onKeyDown={
+                direct.active
+                  ? direct.onKeyDown
+                  : (e) => {
+                      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        onSendClick();
+                      }
+                    }
+              }
+              onPaste={onPasteFile}
+              placeholder={
+                gone
+                  ? translate("composer.placeholder.gone")
+                  : readOnly
+                    ? translate("composer.placeholder.readOnly")
+                    : // Names the machine, because on a crew "why can't I type?" has two possible
+                      // answers and only one of them is about this device.
+                      hostBlock
+                      ? hostBlock
+                      : // The multiplexer cannot type here at all — its own words where it gave any, so
+                        // the placeholder says what is true of THIS terminal rather than blaming the app.
+                        missingSend !== null
+                        ? missingSend.note || translate("composer.placeholder.noMuxSend")
+                      : direct.active
+                        ? translate("composer.placeholder.direct")
+                        : isShell
+                          ? translate("composer.placeholder.shell")
+                          : translate("composer.placeholder.reply")
+              }
+              autoCorrect={direct.active ? "off" : undefined}
+              spellCheck={direct.active ? false : undefined}
+              className={cn(
+                // `flex-1 min-w-0`: the field takes whatever width the two buttons beside it leave,
+                // and `min-w-0` is what lets it go NARROWER than its content asks. A flex item's
+                // automatic minimum width is its min-content width, and `field-sizing-content` turns
+                // that into a laid-out one, so without it a long host path (typed or pasted; an upload
+                // puts only its short marker here since ADR 0060) would widen the field and push the
+                // primary action off the right edge (`wrap-anywhere` in chat-input.tsx
+                // stops the same thing at the source; the two are independent and both stay).
+                //
+                // `py-1.5 min-h-9 pl-2` centre ONE line of the draft against the 36px buttons on the
+                // same row, and claim no more: an empty composer is one button row tall. `min-h-9` is
+                // that one row, not a second one (the field is `box-border`, so the padding is inside
+                // it), and it keeps a smaller draft size from leaving the text a few pixels low.
+                //
+                // `pl-2`, AND ONLY ON THE LEFT. The field is the box's first child now, sitting
+                // directly against the box's own `p-1`, so without an inset of its own the text would
+                // start 4px from the border — the box's padding alone, with nothing of the field's to
+                // add to it. Attach used to stand there and supplied that room as its own width; now
+                // that it has moved beside Send, the field pays for the left margin itself instead.
+                //
+                // NO `pr-*`, AND NOTHING MAY ADD ONE. It was `pr-11`, the 44px strip the attach button
+                // needed while it was tucked into the field's corner. The buttons are siblings of the
+                // field now, so nothing inside the field needs a strip kept clear for either of them —
+                // the field's right side takes no padding of its own, and the box's `gap-1` to attach
+                // is what keeps the text off it.
+                "min-w-0 flex-1 min-h-9 pl-2 py-1.5",
+                // The draft is terminal-bound text, so the field wears the TERMINAL face — the same
+                // family the mirror above it renders in, not the app's chrome face. `font-mono` is
+                // the mirror's own default; the style below follows the operator's mirror-family
+                // choice (Settings → Terminal font), exactly as the mirror itself does.
+                //
+                // THE SIZE IS ITS OWN SETTING (Settings → Terminal font → Draft text), and it is not
+                // the mirror's number: the mirror is output you scan, the draft is a sentence you are
+                // writing. It used to be pinned to the primitive's 16px — not as a choice, but because
+                // a sub-16px focused input makes iOS Safari zoom the whole page and never zoom back.
+                // That fact is now handled where it belongs, as a floor inside `applyDraftFontSize`,
+                // so every other browser gets the smaller default the operator asked for.
+                "font-mono",
+              )}
+              // Built above, where the two halves and their reasons sit together.
+              style={draftStyle}
+              disabled={locked}
+              rows={1}
+            />
+            {/* The way into voice mode, offered only on an empty box: it is a layout switch, and a
+                draft in progress is not the moment for one. */}
+            {stt?.available === true && !direct.active && !hasDraft && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(TOOLBAR_TAP_TARGET, "size-9 rounded-full text-muted-foreground")}
+                disabled={locked}
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => setVoiceModeEnabled(true)}
+                aria-label={translate("composer.voice.enter")}
+              >
+                <AudioLines className="size-4" />
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                TOOLBAR_TAP_TARGET,
+                "size-9 rounded-full text-muted-foreground",
+                // The press echo, in the tone this app already uses for "your press landed" —
+                // `variant="default"`, which is what a tapped quick reply and a busy dialog option
+                // both flip to. It was `bg-accent` first, and that was a token chosen by name
+                // rather than by looking: in the dark theme `accent` resolves to oklch(0.269),
+                // which is the SAME value as `muted` and sits 0.06 of lightness above the card it
+                // is drawn on. Measured through a real tap, it faded in over 180ms, held for 40,
+                // and faded out — a flash nobody could see on a phone. `primary` is oklch(0.922).
+                //
+                // `duration-0` on the way IN, and the base duration on the way out. A press has to
+                // answer immediately or it is not answering the press; the release is the part that
+                // wants easing. Removing both classes in one commit is what lets the exit animate.
+                // Lit for the press, and then for as long as the menu it opened is standing: the
+                // menu is anchored above rather than over the button precisely so this can be seen,
+                // and a trigger that went dark under its own open menu would waste that.
+                (pressed || picking) && "scale-95 bg-primary text-primary-foreground duration-0",
+              )}
+              disabled={uploading || locked || direct.active}
+              onPointerDown={(e) => e.preventDefault()}
+              onClick={() => {
+                echoAttachPress();
+                if (asksWhich) setPicking(true);
+                else photoRef.current?.click();
+              }}
+              aria-label={translate("composer.attach.aria")}
+              aria-haspopup="dialog"
+              aria-expanded={asksWhich ? picking : undefined}
             >
-              {direct.active ? (
-                <Keyboard className="size-4" />
-              ) : sending ? (
+              {uploading ? (
                 <Loader2 className="size-4 animate-spin" />
-              ) : justSent ? (
-                <Check className="size-4" />
               ) : (
-                <Send className="size-4" />
+                <Paperclip className="size-4" />
               )}
             </Button>
-          )}
-        </div>
+            {/* The picker, anchored to the BOX so it opens above the whole shape rather than over
+                the button that opened it (ui/anchored-menu.tsx carries the measurement, and the
+                box's own `relative` is the anchor). It is not anchored to the attach button itself
+                even now that attach stands near the box's own right edge: the panel is `right-0
+                min-w-44` against its anchor, and the gap between attach and that edge is NOT fixed —
+                the primary action beside it is a size-9 icon square most of the time but widens into
+                a text button ("Type anyway?" / "Really send?") the moment a confirm is armed, which
+                would slide the menu sideways if it followed the button instead of the box. Anchoring
+                to the box keeps the picker's own right edge pinned to the box's right edge no matter
+                which shape the primary action is wearing.
+                Two rows, no confirm, each one opens a native picker, which is its own decision
+                point. The menu closes BEFORE the click so it is not left standing behind the
+                system UI, and the click still counts as the user gesture the browser requires
+                because both happen in this one handler. */}
+            <AnchoredMenu
+              open={picking}
+              onClose={() => setPicking(false)}
+              label={translate("composer.attach.title")}
+            >
+              <ActionRow
+                icon={<Image aria-hidden="true" className="size-4 shrink-0" />}
+                label={translate("composer.attach.photos")}
+                onClick={() => {
+                  setPicking(false);
+                  photoRef.current?.click();
+                }}
+              />
+              <ActionRow
+                icon={<FileText aria-hidden="true" className="size-4 shrink-0" />}
+                label={translate("composer.attach.files")}
+                onClick={() => {
+                  setPicking(false);
+                  fileRef.current?.click();
+                }}
+              />
+            </AnchoredMenu>
+            {!direct.active && forcingSend ? (
+              // The pre-flight refused and the user is being offered the override. Labelled for what it
+              // actually does — TYPE the text into whatever is on screen — not "send", because the
+              // submit key is still conditional on the verify step behind it.
+              //
+              // NOT a `Collapse`, and that is not an exception to the rule above. The explanation of
+              // WHY the send was refused is already in the top pills — send() publishes it through
+              // `composer.status.tapAgainToType`, carrying the adapter's own reason — so there is no
+              // in-flow strip here to animate. What is left is one control swapped for another in a
+              // slot that already exists, on the horizontal axis; `Collapse` animates a row's HEIGHT,
+              // so wrapping it would animate nothing and add a wrapper between the flex row and its
+              // child. §2 is kept by the button box being the same height in all four branches.
+              //
+              // The two confirm branches are the only ones that carry a WORD, so they are the only
+              // ones that are not square: `h-9` to match the round faces beside them, and `shrink-0`
+              // keeps the word whole; the field is the one flex item that gives up width for it.
+              <Button
+                variant="destructive"
+                className={cn(TOOLBAR_TAP_TARGET, "h-9 shrink-0 rounded-md px-3 text-sm font-semibold")}
+                onClick={onSendClick}
+                disabled={locked || !hasDraft || sending}
+                aria-label={translate("composer.send.typeAnyway")}
+              >
+                {translate("composer.send.typeAnyway")}
+              </Button>
+            ) : !direct.active && confirmingSend ? (
+              <Button
+                variant="destructive"
+                className={cn(TOOLBAR_TAP_TARGET, "h-9 shrink-0 rounded-md px-3 text-sm font-semibold")}
+                onClick={onSendClick}
+                disabled={locked || !hasDraft || sending}
+                aria-label={translate("composer.send.reallySend")}
+              >
+                {translate("composer.send.reallySend")}
+              </Button>
+            ) : micIsPrimary ? (
+              // THE MICROPHONE IS THE PRIMARY ACTION WHILE THE BOX IS EMPTY, and becomes Send the
+              // moment there is anything to send. It used to be a second, permanent control tucked
+              // inside the field beside the attach button — deliberately, to avoid a split primary
+              // action. The v1 beta said that reads the workflow wrong: you either dictate a message
+              // or you type one, and nobody dictates into the middle of a draft. So the field paid
+              // 36px of its width, on every render, for a control that is only ever wanted on an empty
+              // box. An empty box has no Send either (`send` refuses a blank value), so this branch
+              // takes over a button that could do nothing anyway — it replaces no capability.
+              <Button
+                size="icon"
+                variant={recorder.busy ? "destructive" : "default"}
+                className={cn(TOOLBAR_TAP_TARGET, "size-9 shrink-0 rounded-full")}
+                disabled={!stt.available || locked || sending || recorder.phase === "transcribing"}
+                aria-pressed={recorder.busy}
+                // The bridge's own words when it cannot serve — the operator's next move is on the
+                // host, so the button says what is wrong rather than just refusing.
+                aria-label={
+                  !stt.available
+                    ? (stt.reason ?? translate("composer.mic.unavailable"))
+                    : recorder.phase === "recording"
+                      ? translate("composer.mic.stopAria")
+                      : translate("composer.mic.recordAria")
+                }
+                title={stt.available ? undefined : stt.reason}
+                onPointerDown={(e) => e.preventDefault()}
+                onClick={() => (recorder.phase === "recording" ? recorder.stopAndSend() : recorder.start())}
+              >
+                {recorder.phase === "transcribing" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : recorder.phase === "recording" ? (
+                  <Square className="size-4 fill-current" />
+                ) : (
+                  <Mic className="size-4" />
+                )}
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                className={cn(TOOLBAR_TAP_TARGET, "size-9 shrink-0 rounded-full")}
+                onClick={direct.active ? () => direct.deactivate() : onSendClick}
+                disabled={locked || sending}
+                aria-label={
+                  direct.active
+                    ? translate("composer.send.stopTypingAria")
+                    : translate("composer.send.sendAria")
+                }
+                aria-pressed={direct.active}
+              >
+                {direct.active ? (
+                  <Keyboard className="size-4" />
+                ) : sending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : justSent ? (
+                  <Check className="size-4" />
+                ) : (
+                  <Send className="size-4" />
+                )}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Slash-command palette */}

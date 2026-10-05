@@ -67,6 +67,16 @@ export const zhTW: Dictionary = {
   "settings.handsFree.description":
     "語音轉錄完成後立即傳送，不經過輸入框緩衝。預設關閉，以便在內容寫入終端機前核對文字。",
   "settings.handsFree.ariaLabel": "語音直接傳送：轉錄後立即傳送",
+  "composer.voice.idle": "按住說話，或輕點",
+  "composer.voice.recording": "{elapsed} · 放開或輕點傳送",
+  "composer.voice.transcribing": "正在傳送…",
+  "composer.voice.waitingForMic": "正在等待麥克風…",
+  "composer.voice.discard": "捨棄錄音",
+  "composer.voice.keyboard": "改為輸入",
+  "composer.voice.enter": "語音模式",
+  "settings.voiceMode.title": "語音模式",
+  "settings.voiceMode.description": "以一個大的說話按鈕取代輸入框。按住說話、放開傳送，或輕點開始、再點一次傳送。",
+  "settings.voiceMode.ariaLabel": "語音模式：一個大的說話按鈕",
 
   // --- settings.push ---
   "settings.push.title": "推播通知",

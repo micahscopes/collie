@@ -68,6 +68,16 @@ export const zh: Dictionary = {
   "settings.handsFree.description":
     "语音转写完成后立即发送，不经过输入框缓冲。默认关闭，以便在内容写入终端前核对文本。",
   "settings.handsFree.ariaLabel": "语音直接发送：转写后立即发送",
+  "composer.voice.idle": "按住说话，或轻点",
+  "composer.voice.recording": "{elapsed} · 松开或轻点发送",
+  "composer.voice.transcribing": "正在发送…",
+  "composer.voice.waitingForMic": "正在等待麦克风…",
+  "composer.voice.discard": "丢弃录音",
+  "composer.voice.keyboard": "改为输入",
+  "composer.voice.enter": "语音模式",
+  "settings.voiceMode.title": "语音模式",
+  "settings.voiceMode.description": "用一个大的说话按钮替换输入框。按住说话、松开发送，或轻点开始、再点一次发送。",
+  "settings.voiceMode.ariaLabel": "语音模式：一个大的说话按钮",
 
   // --- settings.push ---
   "settings.push.title": "推送通知",

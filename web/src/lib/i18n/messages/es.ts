@@ -67,6 +67,16 @@ export const es: Dictionary = {
   "settings.handsFree.description":
     "Envía la transcripción directamente al terminal sin pasar por el cuadro de entrada. Desactivado por defecto.",
   "settings.handsFree.ariaLabel": "Dictado directo: enviar transcripción de inmediato",
+  "composer.voice.idle": "Mantén pulsado para hablar, o toca",
+  "composer.voice.recording": "{elapsed} · suelta o toca para enviar",
+  "composer.voice.transcribing": "Enviando…",
+  "composer.voice.waitingForMic": "Esperando el micrófono…",
+  "composer.voice.discard": "Descartar grabación",
+  "composer.voice.keyboard": "Escribir",
+  "composer.voice.enter": "Modo voz",
+  "settings.voiceMode.title": "Modo voz",
+  "settings.voiceMode.description": "Sustituye el cuadro de mensaje por un botón grande para hablar. Mantén pulsado y suelta para enviar, o toca para empezar y vuelve a tocar para enviar.",
+  "settings.voiceMode.ariaLabel": "Modo voz: un botón grande para hablar",
 
   // --- settings.push ---
   "settings.push.title": "Notificaciones push",
