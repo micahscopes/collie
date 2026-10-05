@@ -72,11 +72,27 @@
       # dependency or dropping the sandbox. The derivation and the rest of that reasoning live in
       # packaging/nix/collie.nix; `packages.<system>.bun` below is the pinned build tool, which is a
       # different thing and stays.
-      packages = forEachSystem (pkgs: {
-        collie = pkgs.callPackage ./packaging/nix/collie.nix { };
-        bun = pinBun pkgs;
-        default = pkgs.callPackage ./packaging/nix/collie.nix { };
-      });
+      #
+      # THE FORK (micahscopes/collie) BUILDS FROM SOURCE, so `collie` and `default` are
+      # packaging/nix/collie-src.nix: this tree, with the pinned Bun, its dependencies fetched in a
+      # fixed-output derivation. The upstream release wrapper above stays as `collie-release`. The
+      # reasoning, and how to move the dependency hash, live in collie-src.nix's header.
+      packages = forEachSystem (
+        pkgs:
+        let
+          fromSource = pkgs.callPackage ./packaging/nix/collie-src.nix {
+            bun = pinBun pkgs;
+            src = self;
+            version = (builtins.fromTOML (builtins.readFile ./herdr-plugin.toml)).version;
+          };
+        in
+        {
+          collie = fromSource;
+          collie-release = pkgs.callPackage ./packaging/nix/collie.nix { };
+          bun = pinBun pkgs;
+          default = fromSource;
+        }
+      );
 
       devShells = forEachSystem (pkgs: {
         default = pkgs.mkShell {

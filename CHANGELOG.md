@@ -21,6 +21,10 @@ newest tag. The phone PWA updates itself within about a minute; no reload needed
 Running a crew? Update the lead first; members follow on their own. Details:
 `docs/crew.md` → *Updating from 1.7.0*.
 
+### Packaging
+
+- **The Nix package builds this tree from source.** `packages.<system>.collie` now compiles the checkout with the pinned Bun. Its dependencies come from a fixed-output fetch whose hash lives in `packaging/nix/deps-hashes.json`. Upstream's release-tarball wrapper stays as `collie-release`. WIRING.md has the fleet steps.
+
 ## [Unreleased]
 
 ### Added
