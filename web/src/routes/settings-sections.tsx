@@ -11,6 +11,7 @@ import { ChatExperimentControl } from "@/components/chat-experiment-control";
 import { ConnectionInfo } from "@/components/connection-info";
 import { CrewSettingsCard } from "@/components/crew-settings-card";
 import { FontSettingsControl } from "@/components/font-settings";
+import { DensityControl } from "@/components/density-control";
 import { HandsFreeControl } from "@/components/hands-free-control";
 import { HapticsControl } from "@/components/haptics-control";
 import { HarnessBarControl } from "@/components/harness-bar-control";
@@ -75,6 +76,8 @@ export function SettingsAppearanceRoute() {
           Reading them one after the other is what makes the split obvious. */}
       <TypefaceControl />
       <FontSettingsControl />
+      {/* How much room the chrome takes, beside the two cards that size the text. */}
+      <DensityControl />
       {/* The harness bar, then the belt's size directly under what it carries: one factor for
           band, pills, icons and words (components/actions-row.tsx, `--belt-scale`). */}
       <HarnessBarControl />

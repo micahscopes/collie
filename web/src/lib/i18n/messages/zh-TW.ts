@@ -77,6 +77,10 @@ export const zhTW: Dictionary = {
   "settings.voiceMode.title": "語音模式",
   "settings.voiceMode.description": "以一個大的說話按鈕取代輸入框。按住說話、放開傳送，或輕點開始、再點一次傳送。",
   "settings.voiceMode.ariaLabel": "語音模式：一個大的說話按鈕",
+  "settings.density.title": "緊湊版面",
+  "settings.density.description":
+    "更小的標題列、更緊的間距，空間內使用平鋪列，讓螢幕更多地留給代理。關閉後恢復寬鬆尺寸。",
+  "settings.density.ariaLabel": "緊湊版面",
 
   // --- settings.push ---
   "settings.push.title": "推播通知",

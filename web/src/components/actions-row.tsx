@@ -490,7 +490,7 @@ export function ActionsRow({ general, agent, mine, onRun, disabled, handle, chan
             }
       }
       className={cn(
-        "relative -mx-3 mb-1 flex items-center border-b border-border bg-foreground/6",
+        "relative -mx-3 mb-1 flex items-center border-b border-border bg-foreground/6 compact:mb-0.5",
         handle && "touch-pan-x",
       )}
     >

@@ -97,6 +97,10 @@ export const en = {
   "settings.voiceMode.title": "Voice mode",
   "settings.voiceMode.description": "Replace the message box with one big talk button. Hold to talk and let go to send, or tap to start and tap again to send.",
   "settings.voiceMode.ariaLabel": "Voice mode: one big talk button",
+  "settings.density.title": "Compact layout",
+  "settings.density.description":
+    "Smaller header, tighter spacing, and flat rows in a space, so more of the screen is your agents. Off brings back the roomier sizes.",
+  "settings.density.ariaLabel": "Compact layout",
 
   // --- settings.push ---
   "settings.push.title": "Push notifications",

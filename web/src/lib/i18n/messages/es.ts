@@ -77,6 +77,10 @@ export const es: Dictionary = {
   "settings.voiceMode.title": "Modo voz",
   "settings.voiceMode.description": "Sustituye el cuadro de mensaje por un botón grande para hablar. Mantén pulsado y suelta para enviar, o toca para empezar y vuelve a tocar para enviar.",
   "settings.voiceMode.ariaLabel": "Modo voz: un botón grande para hablar",
+  "settings.density.title": "Diseño compacto",
+  "settings.density.description":
+    "Cabecera más pequeña, espaciado más ajustado y filas planas en un espacio, para que tus agentes ocupen más pantalla. Desactivado vuelve a los tamaños amplios.",
+  "settings.density.ariaLabel": "Diseño compacto",
 
   // --- settings.push ---
   "settings.push.title": "Notificaciones push",

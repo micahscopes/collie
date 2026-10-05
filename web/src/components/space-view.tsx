@@ -2,6 +2,8 @@ import { groupPanesByTab } from "@/lib/spaces";
 import { tabTitle } from "@/lib/pane-name";
 import type { AgentView, TabView, WorkspaceView } from "@/lib/types";
 import { AgentCard } from "./agent-card";
+import { ListGroup } from "@/components/ui/list-group";
+import { useDensity } from "@/lib/design";
 import { t, tn } from "@/lib/i18n";
 import { useLocale } from "@/hooks/use-locale";
 
@@ -38,12 +40,15 @@ export function SpaceView({
   host,
 }: SpaceViewProps) {
   useLocale();
+  // Compact draws the panes as the dashboard's flat rows (44px each) rather than cards (about 66px
+  // plus a gap), which is most of what the space view gives back.
+  const density = useDensity();
   // Host-qualified: another machine's `w1` is not this space, however identically it is numbered.
   const allGroups = groupPanesByTab(workspace.workspaceId, tabs, agents, shellPanes, host);
   const groups = selectedTab ? allGroups.filter((g) => g.tabId === selectedTab) : allGroups;
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-4">
+    <div className="flex flex-col gap-5 px-4 py-4 compact:gap-3 compact:py-3">
       <div>
         <h2 className="truncate text-sm font-semibold">{workspace.label}</h2>
         <p className="text-xs text-muted-foreground">
@@ -81,6 +86,20 @@ export function SpaceView({
           )}
           {g.panes.length === 0 ? (
             <p className="text-xs text-muted-foreground">{t("space.view.emptyTab")}</p>
+          ) : density === "compact" ? (
+            <ListGroup>
+              {g.panes.map((p) => (
+                <AgentCard
+                  key={p.paneId}
+                  agent={p}
+                  onClick={(el) => onOpen(p, el)}
+                  glideKey={glideKeyOf?.(p)}
+                  onPress={onPress && (() => onPress(p))}
+                  scope="tab"
+                  density="row"
+                />
+              ))}
+            </ListGroup>
           ) : (
             <div className="flex flex-col gap-2">
               {/* scope="tab": this list already sits under its space heading and per-tab section,

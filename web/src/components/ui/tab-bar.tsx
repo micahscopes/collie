@@ -66,7 +66,7 @@ export function TabBar<V extends string>({ items, active, onSelect, label, class
               className={cn(
                 // `-mt-px` lays the 2px edge over the band's 1px rule, so the active tab's mark IS
                 // the top edge there rather than a second line under it.
-                "relative -mt-px flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 border-t-2 border-transparent px-1 text-[11px] font-medium select-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                "relative -mt-px flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 compact:min-h-12 compact:gap-0.5 border-t-2 border-transparent px-1 text-[11px] font-medium select-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
                 on ? "border-foreground text-foreground" : "text-muted-foreground",
               )}
             >

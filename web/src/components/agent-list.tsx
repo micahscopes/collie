@@ -408,7 +408,7 @@ export function AgentList({
   );
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-4">
+    <div className="flex flex-col gap-5 px-4 py-4 compact:gap-3 compact:py-3">
       {/* THE WORKSPACE STRIP, a filter. "All", then one chip per workspace in the list's own order,
           each lit with the worst status inside. Tap a chip to see that workspace alone, tap it or
           All to see everything again. Long-press a chip to hide the workspace, and again to bring it

@@ -180,6 +180,11 @@
 /* `dark:` must fire for BOTH an explicitly-pinned dark root and a system-dark root the user hasn't
    pinned to light — otherwise the handful of literal `dark:` utilities silently stop working for
    everyone on System (the default). Token-driven colors don't need this; these are the literals. */
+/* `compact:` fires under this fork's default density, which is every root WITHOUT
+   `density-comfortable` (src/lib/design.ts § Density). A call site keeps upstream's class and adds
+   the compact one beside it, so each change reads as "was X, compact Y". */
+@custom-variant compact (&:where(:root:not(.density-comfortable) *));
+
 @custom-variant dark {
   &:is(.dark *) {
     @slot;

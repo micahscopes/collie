@@ -404,6 +404,12 @@ each is thirty pixels of list the operator stops seeing — and a target does no
 visible to be hit. Two measured numbers hold it together, both documented at the constant;
 change the scroller's padding or the pill's border and you must re-measure.
 
+**Compact (this fork's default density) lowers some floors, never below 44px.** A call site keeps
+its class and adds a `compact:` one beside it (`index.css`, `lib/design.ts` § Density): the header
+row is `min-h-15 compact:min-h-12`, the tab bar `min-h-14 compact:min-h-12`. The header's 44px
+controls still fit inside 48. Both sizes are static per device, so §2 holds: nothing moves while
+you use the app, only when you flip the setting.
+
 **A row states its own floor with `min-h`, never `h`.** `app-header.tsx:212` is
 `min-h-15` — 60px. It is a floor, not a sum: the row's own padding is `py-1`, and the
 floor stands above whatever the content needs so the row cannot shrink when a route

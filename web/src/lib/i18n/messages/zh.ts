@@ -78,6 +78,10 @@ export const zh: Dictionary = {
   "settings.voiceMode.title": "语音模式",
   "settings.voiceMode.description": "用一个大的说话按钮替换输入框。按住说话、松开发送，或轻点开始、再点一次发送。",
   "settings.voiceMode.ariaLabel": "语音模式：一个大的说话按钮",
+  "settings.density.title": "紧凑布局",
+  "settings.density.description":
+    "更小的标题栏、更紧的间距，空间内使用平铺行，让屏幕更多地留给代理。关闭后恢复宽松尺寸。",
+  "settings.density.ariaLabel": "紧凑布局",
 
   // --- settings.push ---
   "settings.push.title": "推送通知",

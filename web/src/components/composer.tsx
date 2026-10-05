@@ -1395,7 +1395,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
           // See `composing` on the props above: the inset reserves room for the home indicator, and
           // while the keyboard is up the keyboard is already covering it. Paying it twice costs
           // ~24px on the one screen that has none.
-          composing ? "pb-2" : "pb-[calc(env(safe-area-inset-bottom)_+_0.5rem)]",
+          composing
+            ? "pb-2 compact:pb-1"
+            : "pb-[calc(env(safe-area-inset-bottom)_+_0.5rem)] compact:pb-[max(env(safe-area-inset-bottom),0.25rem)]",
         )}
       >
         {/* Pending-send preview: visible from send until the mirror echoes back (or 6s). Shows the

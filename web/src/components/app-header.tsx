@@ -281,7 +281,7 @@ export function AppHeaderHost({ bridge, error, children }: AppHeaderHostProps) {
               `py-2` would now read identically and would hand a future taller-than-44px child its 8px
               back. That is a PROPOSAL, not a change — the number is left exactly where it was measured,
               one variable at a time. */}
-          <div data-slot="header-row" className="flex min-h-15 items-center gap-2 pl-4 pr-2 py-1">
+          <div data-slot="header-row" className="flex min-h-15 items-center gap-2 pl-4 pr-2 py-1 compact:min-h-12 compact:py-0.5">
             {!claim.override && (
               <>
                 {/* The mark is the shell's, not a slot — which is now literal rather than a promise: it

@@ -78,6 +78,10 @@ export const ko: Dictionary = {
   "settings.voiceMode.title": "음성 모드",
   "settings.voiceMode.description": "입력란을 큰 말하기 버튼으로 바꿉니다. 길게 눌러 말하고 손을 떼면 전송되며, 탭하여 시작하고 다시 탭하면 전송됩니다.",
   "settings.voiceMode.ariaLabel": "음성 모드: 큰 말하기 버튼",
+  "settings.density.title": "컴팩트 레이아웃",
+  "settings.density.description":
+    "헤더를 작게, 간격을 촘촘하게, 스페이스 안은 평평한 행으로 표시해 화면을 에이전트에 더 많이 씁니다. 끄면 넉넉한 크기로 돌아갑니다.",
+  "settings.density.ariaLabel": "컴팩트 레이아웃",
 
   // --- settings.push ---
   "settings.push.title": "푸시 알림",

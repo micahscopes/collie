@@ -78,6 +78,10 @@ export const de: Dictionary = {
   "settings.voiceMode.title": "Sprachmodus",
   "settings.voiceMode.description": "Ersetzt das Eingabefeld durch eine große Sprechtaste. Halten zum Sprechen, loslassen zum Senden, oder einmal tippen zum Starten und noch einmal zum Senden.",
   "settings.voiceMode.ariaLabel": "Sprachmodus: eine große Sprechtaste",
+  "settings.density.title": "Kompaktes Layout",
+  "settings.density.description":
+    "Kleinere Kopfzeile, engere Abstände und flache Zeilen in einem Space, damit mehr vom Bildschirm deinen Agents gehört. Aus stellt die großzügigeren Größen wieder her.",
+  "settings.density.ariaLabel": "Kompaktes Layout",
 
   // --- settings.push ---
   "settings.push.title": "Push-Benachrichtigungen",

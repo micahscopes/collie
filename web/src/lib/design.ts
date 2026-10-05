@@ -58,6 +58,13 @@ export interface DesignPrefs {
    * wholesale, including by removing a face the operator has deleted.
    */
   operatorFont?: OperatorFontFace;
+  /**
+   * How much room the chrome takes. ABSENT means compact, this fork's default, and wears no class,
+   * so a device that never opens the setting runs nothing extra before first paint. `comfortable`
+   * is upstream's sizing, put back by the `density-comfortable` class on <html>; index.css's
+   * `compact:` variant is how a call site says what changes.
+   */
+  density?: "comfortable";
 }
 
 const DEFAULT_PREFS: DesignPrefs = { font: DEFAULT_FONT };
@@ -123,6 +130,7 @@ export function parseDesignPrefs(raw: string): DesignPrefs {
   const next: DesignPrefs = { font };
   const face = readOperatorFace(doc.operatorFont);
   if (face !== undefined) next.operatorFont = face;
+  if (asJsonString(doc.density) === "comfortable") next.density = "comfortable";
   return next;
 }
 
@@ -177,6 +185,8 @@ export function setDesignFont(font: string, face?: OperatorFontFace): void {
   if (!isDesignFont(font)) return;
   const next: DesignPrefs = { font };
   if (face !== undefined) next.operatorFont = face;
+  // The density is its own choice and rides along untouched.
+  if (prefs.density !== undefined) next.density = prefs.density;
   // A shipped choice drops the mirror: keeping a face nobody is using would leave the next cold load
   // injecting an `@font-face` for a font it does not render.
   prefs = next;
@@ -212,6 +222,7 @@ export function useDesignPrefs(): DesignPrefs {
  */
 export function initDesign(): void {
   applyFontClass(prefs.font);
+  applyDensityClass(designDensity());
 }
 
 /**
@@ -225,8 +236,38 @@ export function initDesign(): void {
 export function __resetDesign(): void {
   prefs = load();
   applyFontClass(prefs.font);
+  applyDensityClass(designDensity());
   for (const fn of listeners) fn();
 }
 
 /** The storage key, exported so the coupling test can hold theme-init.js to the same string. */
 export const DESIGN_STORAGE_KEY = STORAGE_KEY;
+
+// ── Density ───────────────────────────────────────────────────────────────────────────────────────
+
+export type Density = "compact" | "comfortable";
+
+/** The class <html> wears for `density`: only the non-default one has any. */
+export function applyDensityClass(density: Density): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.classList.toggle("density-comfortable", density === "comfortable");
+}
+
+export function designDensity(): Density {
+  return prefs.density ?? "compact";
+}
+
+export function setDesignDensity(density: Density): void {
+  const next: DesignPrefs = { font: prefs.font };
+  if (prefs.operatorFont !== undefined) next.operatorFont = prefs.operatorFont;
+  if (density === "comfortable") next.density = "comfortable";
+  prefs = next;
+  persist();
+  applyDensityClass(density);
+  for (const fn of listeners) fn();
+}
+
+/** The device's density, for the few places that change a COMPONENT rather than a size. */
+export function useDensity(): Density {
+  return useSyncExternalStore(subscribe, designDensity, designDensity);
+}

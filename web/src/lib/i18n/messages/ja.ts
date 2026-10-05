@@ -77,6 +77,10 @@ export const ja: Dictionary = {
   "settings.voiceMode.title": "音声モード",
   "settings.voiceMode.description": "入力欄を大きな話すボタンに置き換えます。長押しで話して離すと送信、またはタップで開始してもう一度タップで送信します。",
   "settings.voiceMode.ariaLabel": "音声モード: 大きな話すボタン",
+  "settings.density.title": "コンパクト表示",
+  "settings.density.description":
+    "ヘッダーを小さく、余白を詰め、スペース内をフラットな行で表示して、画面をより多くエージェントに使います。オフにすると広めのサイズに戻ります。",
+  "settings.density.ariaLabel": "コンパクト表示",
 
   // --- settings.push ---
   "settings.push.title": "プッシュ通知",
