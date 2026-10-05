@@ -92,6 +92,27 @@ function isEnvelope(tag: string, text: string): boolean {
 }
 
 /**
+ * A bracketed paste as Claude Code records it in a `user` row: the pasted text between an opening
+ * and a closing tag that both carry the same id, each on a line of its own, with blank lines in
+ * front when nothing was typed before the paste (measured on Claude Code 2.1.287, 2026-10-05):
+ *
+ *     "\n\n<pasted_content id=\"6100\">\n…pasted lines…\n</pasted_content id=\"6100\">\n"
+ *
+ * Collie sends every long reply and voice note this way (#349), so this is the common shape of what
+ * the operator said, not an edge case. The tags are Claude Code's own and the operator never typed
+ * them; drawn as text they open the turn with markup, and in the queue row they took a tenth of its
+ * 200 characters.
+ */
+const PASTED_CONTENT = /<pasted_content id="([^"]*)">\n?([\s\S]*?)\n?<\/pasted_content id="\1">/g;
+
+/** The text with each recorded paste replaced by what was pasted, trimmed at both ends. A tag with no
+ *  matching close (same id) is left as it is. */
+export function unwrapPastes(text: string): string {
+  if (!text.includes("<pasted_content ")) return text;
+  return text.replace(PASTED_CONTENT, (_whole, _id: string, body: string) => body).trim();
+}
+
+/**
  * Classify a `user` row's string content.
  *
  * Only about half of these are things a human typed — Claude Code reuses the user role as the
@@ -133,7 +154,8 @@ export function classifyUserText(
     return summary ? { role: "note", text: summary } : null;
   }
 
-  return text.trim() === "" ? null : { role: "user", text };
+  const spoken = unwrapPastes(text);
+  return spoken.trim() === "" ? null : { role: "user", text: spoken };
 }
 
 /** Flatten a `tool_result.content`, which is either a plain string or a list of text blocks. */
@@ -302,7 +324,10 @@ function queuedText(content: JsonValue | undefined): string | null {
   const text = stripAnsi(content).trim();
   if (text === "") return null;
   if (QUEUE_ENVELOPES.some((tag) => opensEnvelope(tag, text))) return null;
-  return clamp(text, MAX_QUEUED_CHARS).text;
+  // Unwrapped BEFORE the cap, or the tags spend the row's budget. A cut message ends in "…", so the
+  // row never reads as the whole of what is waiting.
+  const queued = unwrapPastes(text);
+  return queued.length <= MAX_QUEUED_CHARS ? queued : `${queued.slice(0, MAX_QUEUED_CHARS - 1).trimEnd()}…`;
 }
 
 /**
@@ -509,8 +534,10 @@ export function createClaudeReducer(opts: { includeSidechains?: boolean } = {}):
         // A `continue` over the BLOCK, not the row: the other blocks of this turn still count.
         if (b === null || typeof b !== "object" || Array.isArray(b)) continue;
         if (b.type === "text" && typeof b.text === "string") {
-          if (b.text.trim() !== "")
-            parts.push({ kind: "text", ...clamp(stripAnsi(b.text), MAX_TEXT_CHARS) });
+          if (b.text.trim() !== "") {
+            const text = type === "user" ? unwrapPastes(stripAnsi(b.text)) : stripAnsi(b.text);
+            parts.push({ kind: "text", ...clamp(text, MAX_TEXT_CHARS) });
+          }
         } else if (b.type === "thinking" && typeof b.thinking === "string") {
           if (b.thinking.trim() !== "")
             parts.push({ kind: "thinking", ...clamp(stripAnsi(b.thinking), MAX_TEXT_CHARS) });
