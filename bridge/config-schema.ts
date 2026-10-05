@@ -161,6 +161,16 @@ export const CONFIG_SETTINGS: readonly ConfigSetting[] = [
     configField: "pollIdleMs",
   },
   {
+    key: "pulse_ms",
+    env: "COLLIE_PULSE_MS",
+    section: "bridge",
+    kind: "int",
+    default: 300,
+    min: 100,
+    doc: "How often an open phone's pulse looks for a change to nudge it about, in milliseconds.",
+    configField: "pulseMs",
+  },
+  {
     key: "notify_delay_ms",
     env: "COLLIE_NOTIFY_DELAY_MS",
     section: "bridge",

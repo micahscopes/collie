@@ -557,7 +557,17 @@ test("server.ts consults the Access gate before the deposed page and the routes"
   // ADR 0081 says the gate checks every request, including each poll, because the bridge holds no
   // stream open. A WebSocket upgrade or an event stream would be checked once, at connect, and keep
   // running past the token's expiry: adding one must revisit the ADR, and this line fails first.
-  expect(src).not.toMatch(/\.upgrade\(|websocket\s*:|text\/event-stream/);
+  expect(src).not.toMatch(/\.upgrade\(|websocket\s*:/);
+  // The one stream there is, the pulse, was that revisit (addendum 2026-10-05): it refuses whenever
+  // the gate is configured, BEFORE it opens, so no stream ever runs behind the gate.
+  const streams = [...src.matchAll(/text\/event-stream/g)];
+  expect(streams).toHaveLength(1);
+  const pulse = src.indexOf('pathname === "/api/pulse"');
+  const refusal = src.indexOf("if (accessGate !== null) return", pulse);
+  expect(pulse).toBeGreaterThan(gate);
+  expect(refusal).toBeGreaterThan(pulse);
+  expect(refusal).toBeLessThan(src.indexOf("pulseStream(", pulse));
+  expect(refusal).toBeLessThan(streams[0]!.index);
 });
 
 describe("DOOR_PRESETS", () => {

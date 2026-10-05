@@ -285,6 +285,14 @@ graph TD
   relaxes to `COLLIE_POLL_IDLE_MS` (12 s default) whenever the stream is healthy and drops back to
   the fast `COLLIE_POLL_MS` when it isn't. **The snapshot poll stays the source of truth throughout —
   a missed event costs one interval, never correctness.**
+- **The phone is nudged the same way (`GET /api/pulse`, `bridge/pulse.ts`).** While the app is
+  visible, it holds one server-sent stream. The bridge looks at the herd and the open pane's viewport
+  every `COLLIE_PULSE_MS` (300 ms default) and sends a content-free `snapshot` or `pane` event when one
+  changed. The phone answers with its ordinary loader read, spaced at least 600 ms apart
+  (`web/src/lib/pulse.ts`), so a change shows in well under a second instead of at the next 1.5 to
+  6 s poll. The poll is unchanged and stays the truth. No pulse runs for a crew peer's pane or behind
+  the Access gate ([ADR 0081](./.adr/0081-a-front-doors-signed-identity-is-verified-cloudflare-access-is-the-first-preset.md),
+  addendum 2026-10-05); the phone just polls there.
 - **Scrollback comes from the transcript, not the terminal.** An agent's TUI runs on the *alternate
   screen* (`ESC[?1049h`), so the emulator keeps no scrollback ring and a grid read can never return
   more than the visible viewport — the live mirror physically cannot scroll back past it. (Screen

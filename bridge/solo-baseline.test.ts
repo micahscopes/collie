@@ -665,6 +665,9 @@ describe("solo zero-tax — routes", () => {
       // browser answering its own operator. A solo instance registers it and 404s
       // (`crew.not_lead`) — the same shape `/api/stt` has when no provider is configured.
       "/api/pair",
+      // The pulse: a read-only nudge stream for an open phone (bridge/pulse.ts). A SOLO route, local
+      // only, read-gated; it adds no byte to any existing body, so a solo snapshot and its ETag hold.
+      "/api/pulse",
       // "Look now" (ADR 0031) — a SOLO route that legitimately extends this list, named here rather
       // than exempted. It is session-scoped and read-gated, and it registers no crew route of its
       // own: a lead reaches a peer's through the peer's existing `/crew/v1/*` dispatch.
@@ -733,6 +736,7 @@ const CONFIG_KEYS = {
   host: true,
   pollMs: true,
   pollIdleMs: true,
+  pulseMs: true,
   notifyDelayMs: true,
   readLines: true,
   transcript: true,
@@ -791,6 +795,7 @@ describe("solo zero-tax — config", () => {
       "pollMs",
       "port",
       "publicHosts",
+      "pulseMs",
       "quickRepliesFile",
       "readLines",
       "skipServe",
@@ -870,6 +875,7 @@ describe("solo zero-tax — config", () => {
       "COLLIE_POLL_MS",
       "COLLIE_PORT",
       "COLLIE_PUBLIC_HOSTS",
+      "COLLIE_PULSE_MS",
       "COLLIE_READ_LINES",
       "COLLIE_SKIP_SERVE",
       "COLLIE_STATE_DIR",

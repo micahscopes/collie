@@ -141,6 +141,7 @@ function cfg(overrides: Partial<Config> = {}): Config {
     host: "127.0.0.1",
     pollMs: 1500,
     pollIdleMs: 12_000,
+    pulseMs: 300,
     notifyDelayMs: 30_000,
     cacheWarnSeconds: 300,
     readLines: 200,

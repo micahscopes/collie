@@ -23,6 +23,10 @@ Running a crew? Update the lead first; members follow on their own. Details:
 
 ## [Unreleased]
 
+### Changed
+
+- **The phone shows a change in well under a second.** While Collie is open, the bridge watches the open pane and the herd next to the multiplexer and nudges the phone the moment either moves, so a finished turn or a new dialog no longer waits up to six seconds for the next poll. Polling still runs underneath, and nothing changes behind an Access gate or on a crew peer's pane. `COLLIE_PULSE_MS` sets how often the bridge looks (300 ms).
+
 ### Fixed
 
 - **A narrow pane with a running turn no longer shows the unread-dialog card.** When the footer was cut off right after a whole hint, as in "esc to interrupt…", Collie read it as a dialog asking for Esc, lost the input box and drew "Collie cannot read this dialog". It showed whenever Claude was working with background agents in a pane about 59 columns wide.

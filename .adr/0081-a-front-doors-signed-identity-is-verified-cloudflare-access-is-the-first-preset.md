@@ -158,3 +158,18 @@ routes for this. The manifest is the one fetch a browser makes without cookies, 
 **What would justify revisiting.** If Cloudflare starts signing Access tokens with another algorithm,
 the RS256-only rule moves with it. If another identity proxy that signs its assertions is asked for, its request extends the preset
 table rather than adding a vendor branch beside it.
+
+## Addendum 2026-10-05: the pulse is off behind the gate
+
+The fork adds one event stream, `GET /api/pulse` (`bridge/pulse.ts`): a nudge that tells an open phone
+"look now" so a change shows in well under a second instead of at its next 1.5 to 6 s poll. It carries
+no content, only the name of what moved, and the phone answers it with the same polled read as before.
+
+It is still a stream, and the paragraph above holds: it would be admitted once and outlive its token.
+So **the pulse answers 404 whenever this gate is configured**, before any stream opens, and the phone
+falls back to polling, which is checked request by request as this ADR requires. The wiring test now
+pins exactly one `text/event-stream` in `server.ts` and that refusal in front of it.
+
+Without the gate, the pulse is admitted by the same read gate as `/api/snapshot`, and each stream ends
+itself after ten minutes, so a long-lived phone reconnects and is checked again.
+

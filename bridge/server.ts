@@ -1,4 +1,5 @@
 import { mkdir } from "node:fs/promises";
+import { fingerprint, pulseStream } from "./pulse.ts";
 import { homedir } from "node:os";
 import { extname, join, normalize, sep } from "node:path";
 import { createAccessGate } from "./access-jwt.ts";
@@ -1561,6 +1562,49 @@ export function startServer(opts: {
         return withBuildHeader(
           json(crewLead ? crewLead.merge(body, plan) : body, req.headers.get("accept-encoding")),
           await buildId(),
+        );
+      }
+
+      // ── The pulse: "look now" nudges for an open phone (bridge/pulse.ts) ──
+      // A READ, gated as `/api/snapshot` is. Local only: a peer's pane would need a stream across the
+      // crew link, which carries requests, not subscriptions, so a `?host=` member is a 404 and the
+      // phone keeps its ordinary poll there. It carries no content, so nothing new leaves the bridge.
+      if (pathname === "/api/pulse" && req.method === "GET") {
+        const denied = guard(req, cfg, "read", pairing);
+        if (denied) return denied;
+        if (host.kind !== "local") return text("pulse is local only", 404);
+        // Behind a token-checking front door there is no pulse (ADR 0081, addendum 2026-10-05): a stream
+        // is admitted once, at connect, and would outlive the token it was admitted on. The phone polls
+        // there exactly as before, and every poll is checked on its own.
+        if (accessGate !== null) return text("pulse is off behind the access gate", 404);
+        const rt = localRuntime(sessionName, req.headers.get("accept-encoding"));
+        if (rt instanceof Response) return rt;
+        const paneId = url.searchParams.get("pane");
+        const herdKey = () => {
+          // Only what the phone draws: the `bridge` block carries the poll's own clock, which would
+          // nudge on every engine poll and say nothing.
+          const { agents, shellPanes, workspaces, tabs } = rt.engine.current();
+          return fingerprint(JSON.stringify([agents, shellPanes, workspaces, tabs]));
+        };
+        const paneKey = async (): Promise<string | null> => {
+          if (paneId === null || paneId === "") return null;
+          const read = await rt.herdr.readGrid(paneId, { scope: "viewport", lines: cfg.readLines, styling: "preserve" });
+          return read.ok ? fingerprint(read.value.text) : null;
+        };
+        const stream = pulseStream(
+          { snapshotKey: herdKey, paneKey },
+          { intervalMs: cfg.pulseMs, signal: req.signal },
+        );
+        return secure(
+          new Response(stream, {
+            headers: {
+              "content-type": "text/event-stream; charset=utf-8",
+              "cache-control": "no-store",
+              // Tells a buffering reverse proxy (nginx and its kin, docs/deployment.md Variant C) to pass
+              // each event on as it is written.
+              "x-accel-buffering": "no",
+            },
+          }),
         );
       }
 

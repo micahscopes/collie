@@ -193,6 +193,13 @@ function withScope(path: string, scope?: Scope): string {
   return out;
 }
 
+/** The pulse stream's URL for the open pane (or the herd alone when no pane is open), scoped and
+ *  mounted like every other API path. See lib/pulse.ts. */
+export function pulseUrl(paneId: string | null | undefined, scope?: Scope): string {
+  const q = paneId ? `?pane=${encodeURIComponent(paneId)}` : "";
+  return mounted(withScope(`/api/pulse${q}`, scope));
+}
+
 /**
  * A journal image reference as a URL this phone may load, or `null` when it is not one.
  *

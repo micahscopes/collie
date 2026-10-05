@@ -200,6 +200,11 @@ export interface Config {
    */
   pollIdleMs: number;
   /**
+   * How often a pulse stream (bridge/pulse.ts) looks at the herd and the open pane, ms. Each look at
+   * a pane is one local multiplexer read, and it runs only while a phone holds the stream open.
+   */
+  pulseMs: number;
+  /**
    * Debounce window before a blocked/done transition becomes a push, ms. An agent that resolves
    * within this window (you handled it at your desk) never notifies; one that fires is retracted
    * when it later resolves. See NotificationCoordinator. 0 = notify on the next tick (no debounce).
@@ -634,6 +639,7 @@ export function loadConfig(env: Environment = process.env): Config {
     allowNonLoopbackBind,
     pollMs: envInt("COLLIE_POLL_MS", 1500, { min: 250 }, env),
     pollIdleMs: envInt("COLLIE_POLL_IDLE_MS", 12_000, { min: 1000 }, env),
+    pulseMs: envInt("COLLIE_PULSE_MS", 300, { min: 100 }, env),
     notifyDelayMs: envInt("COLLIE_NOTIFY_DELAY_MS", 30_000, { min: 0 }, env),
     // How early a watched pane's prompt-cache warning goes out. The floor is 30 s (a window shorter
     // than one poll's idle resolution is noise, not a warning) and the ceiling an hour, which is past

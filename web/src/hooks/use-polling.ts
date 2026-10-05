@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useRevalidator } from "react-router";
 
-import { refreshNow } from "@/lib/api";
+import { pulseUrl, refreshNow } from "@/lib/api";
 import { isLongUpload } from "@/lib/connection-health";
 import { beginCatchUp, endCatchUp, isLocked, useLocked } from "@/lib/idle";
 import {
@@ -14,6 +14,7 @@ import {
   useTopologyBursting,
 } from "@/lib/poll-intent";
 import type { HomeData } from "@/lib/loaders";
+import { createNudger, openPulse, PULSE_MIN_GAP_MS } from "@/lib/pulse";
 import { crewMoving, runInFlight } from "@/lib/update-ribbon";
 import type { Scope } from "@/lib/scope";
 
@@ -241,6 +242,48 @@ export function usePolling(
     if (revalidator.state === "idle") endCatchUp();
   }, [revalidator.state]);
 
+  // The tick the interval runs, published for the pulse below, and a nudge that arrived while a
+  // revalidation was already in flight. That read may have started before the change it was nudged
+  // for, so the nudge is kept and fired the moment the revalidator comes to rest.
+  const tickRef = useRef<(() => void) | null>(null);
+  const nudgePending = useRef(false);
+  useEffect(() => {
+    if (revalidator.state !== "idle" || !nudgePending.current) return;
+    nudgePending.current = false;
+    tickRef.current?.();
+  }, [revalidator.state]);
+
+  // THE PULSE (lib/pulse.ts, bridge/pulse.ts): the bridge watches the herd and the open pane next to
+  // the multiplexer and says when something moved, so a change shows in well under a second instead
+  // of at the next beat of a 1.5 to 6 s interval. Open only while somebody can be looking (visible,
+  // not idle-locked) and only on this collie's own panes: a crew peer's pane has no stream, and the
+  // phone polls it exactly as before.
+  const scopeHost = scope?.host;
+  const scopeSession = scope?.session;
+  useEffect(() => {
+    if (locked || scopeHost !== undefined) return undefined;
+    const nudger = createNudger(() => {
+      if (ref.current.state === "idle") tickRef.current?.();
+      else nudgePending.current = true;
+    }, PULSE_MIN_GAP_MS);
+    let close: (() => void) | null = null;
+    const open = () => {
+      if (close === null && !document.hidden) close = openPulse(pulseUrl(paneId, scopeRef.current), nudger.nudge);
+    };
+    const shut = () => {
+      close?.();
+      close = null;
+    };
+    const onVisibility = () => (document.hidden ? shut() : open());
+    open();
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      shut();
+      nudger.dispose();
+    };
+  }, [paneId, scopeHost, scopeSession, locked]);
+
   useEffect(() => {
     const tick = () => {
       if (document.hidden) return;
@@ -272,6 +315,7 @@ export function usePolling(
       const since = loadingSince.current;
       if (since !== null && Date.now() - since >= SUPERSEDE_MS) r.revalidate();
     };
+    tickRef.current = tick;
     const id = window.setInterval(tick, ms);
     const onWake = () => tick();
     const onVisible = () => {
