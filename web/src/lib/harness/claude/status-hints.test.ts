@@ -21,13 +21,18 @@ describe("Claude status hints in the footer", () => {
   it.each([
     ["claude--working-esc-to-interrupt.txt", "a turn is running"],
     ["claude--idle-background-shell.txt", "a background shell is running"],
+    ["claude-lab--agents-footer-working-clipped--w59.txt", "the hint is clipped after its last word"],
   ])("%s keeps its input box (%s)", (fixture) => {
     const lines = read(fixture);
     expect(hasInputBox(lines)).toBe(true);
     expect(inputBoxTail(lines)).toBe("statusline");
   });
 
-  it.each(["claude--working-esc-to-interrupt.txt", "claude--idle-background-shell.txt"])(
+  it.each([
+    "claude--working-esc-to-interrupt.txt",
+    "claude--idle-background-shell.txt",
+    "claude-lab--agents-footer-working-clipped--w59.txt",
+  ])(
     "%s draws no unread-dialog card",
     (fixture) => {
       const lines = read(fixture);
@@ -50,6 +55,11 @@ describe("namesAModalKey", () => {
     "⏵⏵ bypass permissions on · esc to inter…",
     "⏵⏵ bypass permissions on · esc to…",
     "⏵⏵ bypass permissions on · ↓ to man…",
+    // The clip can fall just after the whole hint, or on the separator after it.
+    "⏵⏵ bypass permissions on · 1 shell · esc to interrupt…",
+    "⏵⏵ bypass permissions on · 1 shell · esc to interrupt ·…",
+    "⏵⏵ bypass permissions on · 2 shells · ← for agents · ↓ to manage…",
+    "⏵⏵ bypass permissions on · 2 shells · ← for agents · ↓ to manage ·…",
   ])("does not take %j for a modal footer", (row) => {
     expect(namesAModalKey(row)).toBe(false);
   });
@@ -64,6 +74,9 @@ describe("namesAModalKey", () => {
     // Only the closed list is exempt, not the verb "interrupt" for any key.
     "ctrl+c to interrupt",
     "esc to interrupt the dialog",
+    // A clipped modal footer is still one.
+    "Esc to cancel…",
+    "Enter to select · Esc to cancel ·…",
   ])("still takes %j for a modal footer", (row) => {
     expect(namesAModalKey(row)).toBe(true);
   });

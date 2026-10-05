@@ -23,6 +23,10 @@ Running a crew? Update the lead first; members follow on their own. Details:
 
 ## [Unreleased]
 
+### Fixed
+
+- **A narrow pane with a running turn no longer shows the unread-dialog card.** When the footer was cut off right after a whole hint, as in "esc to interrupt…", Collie read it as a dialog asking for Esc, lost the input box and drew "Collie cannot read this dialog". It showed whenever Claude was working with background agents in a pane about 59 columns wide.
+
 ## [1.16.2] - 2026-10-04
 
 ### Fixed

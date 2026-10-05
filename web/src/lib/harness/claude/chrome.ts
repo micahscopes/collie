@@ -496,9 +496,14 @@ function tailNamesAMenu(text: string): boolean {
 // live composer: the default footer paints "esc to interrupt" while a turn runs and "↓ to manage"
 // while background tasks or monitors exist. A modal's footer says "Esc to cancel" / "to close" /
 // "to select", never these. The footer is clipped with "…" on a narrow pane, so "esc to inter…" is
-// the same hint cut short.
-const ESC_TO_INTERRUPT = /^esc to (?:interrupt|i(?:n(?:t(?:e(?:r(?:r(?:u(?:p)?)?)?)?)?)?)?…|…)$/i;
-const DOWN_TO_MANAGE = /^↓ to (?:manage|m(?:a(?:n(?:a(?:g)?)?)?)?…|…)$/i;
+// the same hint cut short, and so is "esc to interrupt…", where the clip fell on the separator after
+// the whole hint (namesAModalKey folds the " ·…" form of that clip into this one).
+const ESC_TO_INTERRUPT = /^esc to (?:interrupt…?|i(?:n(?:t(?:e(?:r(?:r(?:u(?:p)?)?)?)?)?)?)?…|…)$/i;
+const DOWN_TO_MANAGE = /^↓ to (?:manage…?|m(?:a(?:n(?:a(?:g)?)?)?)?…|…)$/i;
+
+// A row clipped just after a separator ends in " ·…", which SEGMENT_SPLIT leaves glued to the last
+// segment. It is the same clip as a "…" straight after that segment.
+const CLIPPED_AT_SEPARATOR = /\s+·…$/;
 
 function isStatusHint(segment: string): boolean {
   const t = segment.trim();
@@ -512,7 +517,7 @@ function isStatusHint(segment: string): boolean {
  * `modalOnScreen` so the box locator and the unread-dialog card agree on what a modal footer is.
  */
 export function namesAModalKey(text: string): boolean {
-  const segments = text.trim().split(SEGMENT_SPLIT);
+  const segments = text.trim().replace(CLIPPED_AT_SEPARATOR, "…").split(SEGMENT_SPLIT);
   const kept = segments.filter((segment) => !isStatusHint(segment));
   if (kept.length === segments.length) return namesAMenuKey(text);
   return kept.length > 0 && namesAMenuKey(kept.join(" · "));

@@ -4,6 +4,20 @@
   "captured": "2026-09-22",
   "entries": [
     {
+      "fixture": "claude-lab--agents-footer-working-clipped--w59.txt",
+      "cols": 59,
+      "rows": 40,
+      "state": "agents-footer-working-clipped",
+      "notes": "Claude Code 2.1.287 in a 59-column tmux window, captured with tmux capture-pane -e: a turn running with a background agent and two shells. The footer clips right after the whole hint, \"esc to interrupt…\", above the \"● main\" agents list. Read as a modal's key hint, it hid the box and drew the unread-dialog card.",
+      "expected": {
+        "hasInputBox": true,
+        "draft": null,
+        "tail": "statusline",
+        "dialogLive": false,
+        "blockKind": "raw"
+      }
+    },
+    {
       "fixture": "claude-lab--agents-screen--w40.txt",
       "cols": 40,
       "rows": 49,
