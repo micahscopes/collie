@@ -85,6 +85,12 @@ stdenvNoCC.mkDerivation {
     cp -R ${deps}/node_modules node_modules
     cp -R ${deps}/web/node_modules web/node_modules
     chmod -R u+w node_modules web/node_modules
+    # The packages' bins start `#!/usr/bin/env node`, and the sandbox has neither /usr/bin/env nor
+    # node. A `node` that is the pinned Bun (the runtime the release runs them under) lets
+    # patchShebangs rewrite them to something that exists.
+    mkdir -p "$TMPDIR/bin"
+    ln -s ${bun}/bin/bun "$TMPDIR/bin/node"
+    export PATH="$TMPDIR/bin:$PATH"
     patchShebangs node_modules web/node_modules
 
     # The version gate `collie build` and the release both run: the four version files must agree.
