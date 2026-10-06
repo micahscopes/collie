@@ -19,6 +19,7 @@ import { useLocale } from "@/hooks/use-locale";
 import { useNav } from "@/hooks/use-nav";
 import { mirrorFont, useDisplayPrefs } from "@/hooks/use-display-prefs";
 import { cn } from "@/lib/utils";
+import { usePageTitle } from "@/lib/page-title";
 
 // Pane history route — the agent's own transcript, which is the ONLY conversation history a Claude
 // pane can have. Its terminal runs on the alternate screen, so Herdr retains no scrollback ring at
@@ -213,6 +214,7 @@ export function HistoryRoute() {
   }, []);
 
   const title = agent?.paneLabel ?? agent?.sessionName ?? agent?.workspaceLabel ?? paneId;
+  usePageTitle(`${t("history.title")} · ${title}`);
   const matchCursor = matches.indexOf(cursor);
 
   return (

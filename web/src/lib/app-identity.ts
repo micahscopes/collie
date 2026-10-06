@@ -1,4 +1,5 @@
 import { mounted } from "@/lib/base-path";
+import { setTitleNames } from "@/lib/page-title";
 import type { AppIdentityWire } from "@/lib/types";
 
 // This install's name and icons at RUNTIME (bridge/app-identity.ts holds the contract).
@@ -20,7 +21,8 @@ function resolve(url: string): string {
 export function applyAppIdentity(app: AppIdentityWire | undefined, doc: Document = document): void {
   if (app === undefined) return;
   if (app.name !== undefined) {
-    doc.title = app.name;
+    // The page title is lib/page-title.ts's, which puts the route's label in front of the name.
+    setTitleNames(app.name, app.shortName);
     const title = doc.querySelector('meta[name="apple-mobile-web-app-title"]');
     // iOS shows at most about a dozen characters under the icon, which is the short name's job.
     title?.setAttribute("content", app.shortName ?? app.name);

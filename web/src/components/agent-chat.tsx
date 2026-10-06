@@ -105,6 +105,7 @@ import type {
 } from "@/lib/blocks";
 import { paneMirrorOverride, setPaneMirrorOverride } from "@/lib/mirror-invert";
 import type { Scope } from "@/lib/scope";
+import { usePageTitle } from "@/lib/page-title";
 
 interface AgentChatProps {
   paneId: string;
@@ -280,6 +281,8 @@ export function AgentChat({
   // "collie-workspace › UI work" here: one pane, two names, and the reader had to work out they
   // were the same pane. The address did not vanish, it moved down one line, where an address belongs.
   const name = agent === undefined ? "" : paneName(agent);
+  // The page title names the pane you are on (lib/page-title.ts).
+  usePageTitle(name);
   const workspace = agent === undefined ? "" : panePlaceParts(agent, tabs).space;
   // The panes that share this tab (agents + shells), in the strip's stable order (lib/pane-ordinal.ts
   // § panesOfTab: position in the tab, never status). Computed here, once: the row is far from the

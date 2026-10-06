@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { applyAppIdentity } from "./app-identity";
+import { __resetPageTitle } from "./page-title";
 
 // The shell's own head, as index.html builds it.
 function shell(): Document {
@@ -19,17 +20,19 @@ describe("applyAppIdentity", () => {
   let doc: Document;
   beforeEach(() => {
     doc = shell();
+    __resetPageTitle();
   });
 
   it("leaves the shell alone when the bridge names nothing", () => {
+    const before = document.title;
     applyAppIdentity(undefined, doc);
-    expect(doc.title).toBe("Collie");
+    expect(document.title).toBe(before);
     expect(doc.querySelectorAll('link[rel="icon"]')).toHaveLength(2);
   });
 
   it("sets the title, and iOS's home-screen title to the short name", () => {
     applyAppIdentity({ name: "Collie · slab", shortName: "slab" }, doc);
-    expect(doc.title).toBe("Collie · slab");
+    expect(document.title).toBe("Collie · slab");
     expect(doc.querySelector('meta[name="apple-mobile-web-app-title"]')!.getAttribute("content")).toBe("slab");
   });
 

@@ -22,6 +22,7 @@ import { setStatus } from "@/lib/status";
 import { isReadOnly } from "@/lib/types";
 import { usePairing } from "@/lib/pairing";
 import { useRootData } from "@/lib/route-data";
+import { usePageTitle } from "@/lib/page-title";
 
 // Space detail route: one space's tabs + panes, with the space/tab strips for in-space navigation.
 // Shares the root snapshot (no own loader), reading :spaceId from the URL — a deep-linkable,
@@ -48,6 +49,7 @@ export function SpaceRoute() {
   }
 
   const selectedWs = data.workspaces.find((w) => w.workspaceId === spaceId);
+  usePageTitle(selectedWs?.label);
 
   // ADR 0067: the dashboard is up, another space is sideways, a pane is down.
   const toDashboard = () => nav.up(homePath(data.scope));
