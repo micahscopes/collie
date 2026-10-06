@@ -48,7 +48,7 @@ collie = inputs.collie.packages.${final.stdenv.hostPlatform.system}.collie;
 ```
 
 `/greenhouse/seeds/services/collie/default.nix` already uses `pkgs.collie` for its three user units
-(`collie`, `collie-door`, `collie-stt`), so nothing in it changes.
+(`collie` and `collie-stt`; the door is the system Caddy), so nothing in it changes.
 
 ## 5. Deploy
 
@@ -56,12 +56,13 @@ collie = inputs.collie.packages.${final.stdenv.hostPlatform.system}.collie;
     git commit -am "collie: track fork"
     # deploy slab the usual way
 
-The deploy restarts the three collie units, which drops the phone UI for a few seconds. Do it when
+Restarting collie (below) drops the phone UI for a few seconds. Do it when
 Micah says so.
 
 ### What to check after the deploy
 
-- `collie version` reports `1.16.2`, with no `+suffix`.
+- `collie version` reports `1.16.2+nogit` (the Nix build has no git; upstream's build printed `+<sha>`).
+- The deploy doesn't restart the user units: `systemctl --user restart collie collie-stt`.
 - `journalctl --user -u collie` shows `listening on …`, and no error mentioning `pulse`.
 - On the phone, while an agent is working, the network panel shows one long `GET /api/pulse`.
   Pane updates then land well under a second after the screen changes.
