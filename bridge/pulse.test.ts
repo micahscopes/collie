@@ -38,6 +38,23 @@ describe("pulseStream", () => {
     expect(await eventsFor(source, 80)).toEqual([]);
   });
 
+  test("one stream too many ends the oldest", async () => {
+    const source: PulseSource = { snapshotKey: () => "a", paneKey: async () => "p" };
+    const aborts = [new AbortController(), new AbortController(), new AbortController()];
+    const streams = aborts.map((abort) => pulseStream(source, { intervalMs: 10, keepaliveMs: 1000, maxStreams: 2, signal: abort.signal }));
+    const drained = streams.map(async (stream) => {
+      for await (const _ of stream) {
+        // Only the ending matters.
+      }
+      return true;
+    });
+    // The first stream ends by itself once the third starts; the other two run until aborted.
+    expect(await Promise.race([drained[0], Bun.sleep(200).then(() => false)])).toBe(true);
+    aborts[1]!.abort();
+    aborts[2]!.abort();
+    expect(await Promise.all(drained.slice(1))).toEqual([true, true]);
+  });
+
   test("an already-aborted request ends the stream at once", async () => {
     const abort = new AbortController();
     abort.abort();

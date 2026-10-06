@@ -33,8 +33,15 @@ export interface PulseOptions {
   /** How long one stream lives before the server ends it and the phone reconnects. A bound, so a
    *  phone that vanished without closing its socket cannot hold a watcher forever. */
   maxLifetimeMs?: number;
+  /** How many streams may run at once. Opening one more ends the OLDEST, which is the likeliest to
+   *  belong to a phone that dropped off the network without closing (its socket can look open for
+   *  minutes); a phone that is still there just reconnects after `retry`. */
+  maxStreams?: number;
   signal?: AbortSignal;
 }
+
+/** The running streams' `end`s, oldest first (a Set keeps insertion order). */
+const running = new Set<() => void>();
 
 const encoder = new TextEncoder();
 
@@ -55,9 +62,11 @@ export function pulseStream(source: PulseSource, opts: PulseOptions): ReadableSt
   let keepalive: ReturnType<typeof setInterval> | undefined;
   let lifetime: ReturnType<typeof setTimeout> | undefined;
   let closed = false;
+  let endSelf: (() => void) | undefined;
 
   const stop = () => {
     closed = true;
+    if (endSelf) running.delete(endSelf);
     clearInterval(tick);
     clearInterval(keepalive);
     clearTimeout(lifetime);
@@ -87,6 +96,13 @@ export function pulseStream(source: PulseSource, opts: PulseOptions): ReadableSt
         return;
       }
       opts.signal?.addEventListener("abort", end, { once: true });
+      endSelf = end;
+      running.add(end);
+      const maxStreams = opts.maxStreams ?? 8;
+      for (const oldest of running) {
+        if (running.size <= maxStreams) break;
+        oldest();
+      }
 
       let lastSnapshot = source.snapshotKey();
       let lastPane = await source.paneKey();
