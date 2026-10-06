@@ -35,7 +35,9 @@ export interface PulseOptions {
   maxLifetimeMs?: number;
   /** How many streams may run at once. Opening one more ends the OLDEST, which is the likeliest to
    *  belong to a phone that dropped off the network without closing (its socket can look open for
-   *  minutes); a phone that is still there just reconnects after `retry`. */
+   *  minutes); a phone that is still there just reconnects after `retry`. Every visible tab on a
+   *  local pane holds one, so with more than this many open they take turns: about one reconnect a
+   *  second, harmless because the poll stays the source of truth. */
   maxStreams?: number;
   signal?: AbortSignal;
 }
@@ -106,6 +108,9 @@ export function pulseStream(source: PulseSource, opts: PulseOptions): ReadableSt
 
       let lastSnapshot = source.snapshotKey();
       let lastPane = await source.paneKey();
+      // Ended (evicted, aborted, cancelled) while that first read was out: `stop` has already run,
+      // so timers made now would outlive the stream.
+      if (closed) return;
       let reading = false;
       // `retry` tells the browser how soon to reconnect after the stream ends; the comment opens the
       // body at once, so a proxy that waits for the first bytes passes the stream on.
