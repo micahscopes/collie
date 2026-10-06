@@ -75,7 +75,7 @@ export const ja: Dictionary = {
   "composer.voice.keyboard": "入力に切り替え",
   "composer.voice.enter": "音声モード",
   "settings.voiceMode.title": "音声モード",
-  "settings.voiceMode.description": "メッセージ欄を大きな通話ボタンに置き換えます。押したまま話して離すか、タップで開始してもう一度タップします。ハンズフリーがオンならすぐに送信し、オフなら確認できるようにメッセージ欄に戻ります。",
+  "settings.voiceMode.description": "入力欄を大きな話すボタンに置き換えます。長押しで話して離すか、タップで開始してもう一度タップします。ハンズフリー音声入力がオンならすぐに送信し、オフなら確認できるように入力欄に戻ります。",
   "settings.voiceMode.ariaLabel": "音声モード: 大きな話すボタン",
   "settings.density.title": "コンパクト表示",
   "settings.density.description":

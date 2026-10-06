@@ -75,7 +75,7 @@ export const es: Dictionary = {
   "composer.voice.keyboard": "Escribir",
   "composer.voice.enter": "Modo voz",
   "settings.voiceMode.title": "Modo voz",
-  "settings.voiceMode.description": "Sustituye el cuadro de mensaje por un gran botón para hablar. Mantén pulsado para hablar y suelta, o toca para empezar y toca otra vez. Con manos libres se envía al instante; si no, las palabras vuelven al cuadro de mensaje para revisarlas.",
+  "settings.voiceMode.description": "Sustituye el cuadro de mensaje por un botón grande para hablar. Mantén pulsado para hablar y suelta, o toca para empezar y vuelve a tocar. Con Dictado directo se envía al instante; si no, las palabras vuelven al cuadro de mensaje para revisarlas.",
   "settings.voiceMode.ariaLabel": "Modo voz: un botón grande para hablar",
   "settings.density.title": "Diseño compacto",
   "settings.density.description":

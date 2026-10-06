@@ -75,7 +75,7 @@ export const zhTW: Dictionary = {
   "composer.voice.keyboard": "改為輸入",
   "composer.voice.enter": "語音模式",
   "settings.voiceMode.title": "語音模式",
-  "settings.voiceMode.description": "將訊息框換成一個大的通話按鈕。按住說話後放開，或輕點開始、再輕點一次。開啟免持時立即傳送；否則文字會回到訊息框供你檢查。",
+  "settings.voiceMode.description": "以一個大的說話按鈕取代輸入框。按住說話後放開，或輕點開始、再點一次。開啟語音直接傳送時立即傳送；否則文字會回到輸入框供你檢查。",
   "settings.voiceMode.ariaLabel": "語音模式：一個大的說話按鈕",
   "settings.density.title": "緊湊版面",
   "settings.density.description":

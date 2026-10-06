@@ -397,8 +397,12 @@ describe("Composer — voice mode", () => {
     act(() => recorder.finish());
 
     // Voice mode is a layout, not consent to send unread: only hands-free does that.
-    expect(await screen.findByPlaceholderText(/type a reply/i)).toHaveValue("read me first");
+    const field = await screen.findByPlaceholderText(/type a reply/i);
+    expect(field).toHaveValue("read me first");
     expect(replies).toBe(0);
+    // Shown, not focused: focus would open the phone's keyboard after every clip.
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(field).not.toHaveFocus();
   });
 
   it("with hands-free, sends through the guarded path", async () => {

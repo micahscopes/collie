@@ -10,7 +10,7 @@ import { pressDown, pressUp, type Press } from "@/lib/voice-press";
 
 // VOICE MODE's composer row (lib/stt.ts § voice mode): one wide button that IS the microphone.
 //
-// Hold it to talk and let go to send, or tap it once to start and once more to send; the two are
+// Hold it to talk and let go, or tap it once to start and once more to finish; the two are
 // told apart by lib/voice-press.ts, so neither needs a setting. What a finished clip does is the
 // composer's business (`acceptTranscript`): with hands-free on it goes out through the guarded
 // send; otherwise it lands in the draft and the field returns for review.

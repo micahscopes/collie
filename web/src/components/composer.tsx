@@ -654,14 +654,17 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
       void send(transcript, false);
       return;
     }
-    insertTranscript(transcript);
+    // In voice mode the words are there to read, not to type at: focusing the field would open the
+    // phone's keyboard after every clip. A tap on the field still opens it for an edit.
+    insertTranscript(transcript, { focus: !voiceMode });
   }
 
   /** Splice a transcript into the draft AT THE CARET (the field is where the operator left it, and
    *  dictating a clause into the middle of a sentence is the whole point of a caret), padded with a
    *  space when it would otherwise weld itself to the word in front of it. */
-  function insertTranscript(transcript: string) {
-    direct.deactivateSilently();
+  function insertTranscript(transcript: string, { focus = true }: { focus?: boolean } = {}) {
+    // Disarming focuses the field (use-direct-typing § clearMode), so only disarm what is armed.
+    if (direct.active) direct.deactivateSilently();
     const el = inputRef.current;
     const prev = inputValueRef.current;
     const start = el?.selectionStart ?? prev.length;
@@ -671,6 +674,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
     const inserted = before !== "" && !/\s$/.test(before) ? ` ${transcript}` : transcript;
     updateInput(`${before}${inserted}${after}`);
     const caret = start + inserted.length;
+    if (!focus) return;
     // Deferred like every other focus in this component: React has to swap the controlled value
     // before a selection range means anything.
     setTimeout(() => {

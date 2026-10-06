@@ -76,7 +76,7 @@ export const ko: Dictionary = {
   "composer.voice.keyboard": "입력으로 전환",
   "composer.voice.enter": "음성 모드",
   "settings.voiceMode.title": "음성 모드",
-  "settings.voiceMode.description": "메시지 상자를 큰 말하기 버튼으로 바꿉니다. 누른 채 말하고 놓거나, 탭해서 시작하고 다시 탭합니다. 핸즈프리가 켜져 있으면 바로 보내고, 꺼져 있으면 검토할 수 있도록 메시지 상자에 넣습니다.",
+  "settings.voiceMode.description": "입력란을 큰 말하기 버튼으로 바꿉니다. 길게 눌러 말하고 손을 떼거나, 탭하여 시작하고 다시 탭합니다. 음성 직접 전송이 켜져 있으면 바로 전송되고, 꺼져 있으면 검토할 수 있도록 입력란에 들어갑니다.",
   "settings.voiceMode.ariaLabel": "음성 모드: 큰 말하기 버튼",
   "settings.density.title": "컴팩트 레이아웃",
   "settings.density.description":

@@ -76,7 +76,7 @@ export const zh: Dictionary = {
   "composer.voice.keyboard": "改为输入",
   "composer.voice.enter": "语音模式",
   "settings.voiceMode.title": "语音模式",
-  "settings.voiceMode.description": "将消息框换成一个大的通话按钮。按住说话后松开，或轻点开始、再轻点一次。开启免提时立即发送；否则文字会回到消息框供你检查。",
+  "settings.voiceMode.description": "用一个大的说话按钮替换输入框。按住说话后松开，或轻点开始、再点一次。开启语音直接发送时立即发送；否则文字会回到输入框供你检查。",
   "settings.voiceMode.ariaLabel": "语音模式：一个大的说话按钮",
   "settings.density.title": "紧凑布局",
   "settings.density.description":
