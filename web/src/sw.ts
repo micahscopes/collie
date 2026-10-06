@@ -40,7 +40,13 @@ declare const self: ServiceWorkerGlobalScope & {
 //
 // Best-effort, and off the response path: the asset is returned whatever the postMessage does. A
 // client list that cannot be read costs the bar, never the install.
-const PRECACHE_MANIFEST = self.__WB_MANIFEST;
+// THE WEB MANIFEST IS NEVER PRECACHED (bridge/app-identity.ts). The bridge rewrites it per install
+// (COLLIE_APP_NAME and friends), and a precached copy would answer an installed app's re-read with
+// the build's name for as long as this worker lived. vite-plugin-pwa adds the manifest to the list
+// unconditionally, after any build-time filter, so it comes off here, where the list is used.
+const PRECACHE_MANIFEST = self.__WB_MANIFEST.filter(
+  (entry) => !(entry instanceof Object ? entry.url : entry).endsWith("manifest.webmanifest"),
+);
 let precached = 0;
 
 addPlugins([

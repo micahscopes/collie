@@ -21,17 +21,13 @@ newest tag. The phone PWA updates itself within about a minute; no reload needed
 Running a crew? Update the lead first; members follow on their own. Details:
 `docs/crew.md` → *Updating from 1.7.0*.
 
-### Packaging
-
-- **The Nix package builds this tree from source.** `packages.<system>.collie` now compiles the checkout with the pinned Bun. Its dependencies come from a fixed-output fetch whose hash lives in `packaging/nix/deps-hashes.json`. Upstream's release-tarball wrapper stays as `collie-release`. WIRING.md has the fleet steps.
-
 ## [Unreleased]
 
 ### Added
 
-- **Voice mode turns the message box into one big talk button.** Hold it to talk and let go to send, or tap once to start and once more to send. A keyboard button beside it goes back to typing, and a small button in an empty message box comes back. Turn it on there or under Settings, next to Hands-free voice. The transcript is sent through the same checks as a typed reply, and lands in the box instead when a dialog is up.
-
+- **Voice mode turns the message box into one big talk button.** Hold it to talk and let go to finish, or tap once to start and once more to finish. With Hands-free voice on, the transcript is sent through the same checks as a typed reply. Otherwise it lands in the message box to read first, and the big button comes back once that is sent or cleared. A keyboard button beside it goes back to typing, and a small button in an empty message box comes back. Turn it on there or under Settings, next to Hands-free voice.
 - **A compact layout is the default.** The header is 48px instead of 60, the space view lists panes as flat rows instead of cards, and the spacing around the composer, the status lines and the dashboard is tighter. Every tap target stays at least 44px. Settings → Appearance → Compact layout turns it off.
+- **Each install can have its own name and icon on the phone.** `COLLIE_APP_NAME`, `COLLIE_APP_SHORT_NAME` and `COLLIE_APP_ICON_DIR` name an install and point it at its own icon PNGs, so six installs are no longer six tiles all reading Collie. The manifest is now served fresh rather than from the service worker's cache, and `lib.appIcons` in the flake renders the icons from an emoji and a colour. Thanks @beantownbytes for the request (#219).
 
 ### Changed
 
@@ -41,6 +37,10 @@ Running a crew? Update the lead first; members follow on their own. Details:
 
 - **A narrow pane with a running turn no longer shows the unread-dialog card.** When the footer was cut off right after a whole hint, as in "esc to interrupt…", Collie read it as a dialog asking for Esc, lost the input box and drew "Collie cannot read this dialog". It showed whenever Claude was working with background agents in a pane about 59 columns wide.
 - **A pasted reply or voice note reads as itself in History, Chat and the queue.** Claude Code records a bracketed paste between its own `pasted_content` tags, and Collie drew those tags as part of the message. In the queue row they ate the start of its 200 characters, so a waiting voice note showed the tag and a fragment. The tags are now removed, and a queued message that is cut ends in "…".
+
+### Packaging
+
+- **The Nix package builds this tree from source.** `packages.<system>.collie` now compiles the checkout with the pinned Bun. Its dependencies come from a fixed-output fetch whose hash lives in `packaging/nix/deps-hashes.json`. Upstream's release-tarball wrapper stays as `collie-release`. WIRING.md has the fleet steps.
 
 ## [1.16.2] - 2026-10-04
 

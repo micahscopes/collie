@@ -694,6 +694,9 @@ describe("solo zero-tax — routes", () => {
       "/api/workspace",
       "/auth",
       "/auth/*",
+      // This install's manifest, rewritten with its own name and icons (bridge/app-identity.ts). A
+      // SOLO route that only answers when COLLIE_APP_* is set; unset, the built file goes out as before.
+      "/manifest.webmanifest",
     ]);
   });
 
@@ -737,6 +740,9 @@ const CONFIG_KEYS = {
   pollMs: true,
   pollIdleMs: true,
   pulseMs: true,
+  appName: true,
+  appShortName: true,
+  appIconDir: true,
   notifyDelayMs: true,
   readLines: true,
   transcript: true,
@@ -773,6 +779,9 @@ describe("solo zero-tax — config", () => {
       "allowAnyHost",
       "allowNonLoopbackBind",
       "allowedOrigins",
+      "appIconDir",
+      "appName",
+      "appShortName",
       "auditContent",
       "basePath",
       "cacheRulesFile",
@@ -853,6 +862,9 @@ describe("solo zero-tax — config", () => {
       "COLLIE_ALLOWED_ORIGINS",
       "COLLIE_ALLOW_ANY_HOST",
       "COLLIE_ALLOW_NON_LOOPBACK_BIND",
+      "COLLIE_APP_ICON_DIR",
+      "COLLIE_APP_NAME",
+      "COLLIE_APP_SHORT_NAME",
       "COLLIE_AUDIT_CONTENT",
       "COLLIE_BASE_PATH",
       "COLLIE_CACHE_WARN_SECONDS",

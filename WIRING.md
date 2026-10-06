@@ -69,6 +69,59 @@ Micah says so.
   - The pulse is off behind an Access gate (ADR 0081, addendum 2026-10-05).
   - Tune it with `COLLIE_PULSE_MS` (default 300).
 
+## 6. Each install's name and icon on the phone
+
+Every install used to show up on the phone as "Collie". Three settings name one install and give it
+its own icon (`bridge/app-identity.ts`). All are optional, and unset means the shipped name and mark.
+
+| Variable | What it sets | Default |
+| --- | --- | --- |
+| `COLLIE_APP_NAME` | The manifest `name`, the page title | Collie |
+| `COLLIE_APP_SHORT_NAME` | The launcher label under the icon (Android `short_name`, iOS title) | the name |
+| `COLLIE_APP_ICON_DIR` | A directory of ready-made PNGs, by these file names | the shipped mark |
+
+The directory holds `icon-192.png` and `icon-512.png` (the manifest icons, used only as a pair),
+`apple-touch-icon.png` (180, opaque) and `favicon-96.png`. A missing file keeps the shipped icon for
+that slot. The bridge reads all three settings once at startup, so a change needs a restart.
+
+The fork's flake renders the directory from an emoji and a colour, so eig can feed it the host's
+shell-theme profile (`garden/shell-theme.nix`) directly. In the collie service, wherever the unit's
+environment is set:
+
+```nix
+let
+  theme = /* this host's or box's { colour, emoji } from garden/shell-theme.nix */;
+  icons = inputs.collie.lib.appIcons {
+    inherit pkgs;
+    inherit (theme) emoji;
+    colour = theme.colour;  # "#rgb" or "#rrggbb"; map an ANSI colour name to hex first
+  };
+in
+{
+  COLLIE_APP_NAME = "Collie · wondering-lab";
+  COLLIE_APP_SHORT_NAME = "wondering";   # about 12 characters fit under an Android icon
+  COLLIE_APP_ICON_DIR = "${icons}";
+}
+```
+
+`lib.appIcons` draws the emoji from nixpkgs' Noto Color Emoji onto the colour, with Pillow. The
+emoji sits inside the maskable safe zone, so Android's mask never cuts it. ZWJ sequences and flags
+work, since nixpkgs' Pillow is built with libraqm.
+
+What the phone does after the deploy:
+
+- **Android:** Chrome re-reads the manifest and updates the installed app's label and icon on its own.
+  This can take until the app has been opened a few times, or up to a day. Reinstalling is the
+  quick way to see it.
+- **iOS:** takes the name and icon when you tap Add to Home Screen. An existing tile keeps its old
+  ones until it is removed and added again.
+- **Service worker:** this build stops precaching the manifest, so the first load after the deploy
+  replaces the old worker and every later read of the manifest reaches the bridge.
+
+Check from the host:
+
+    curl -s https://<host>/manifest.webmanifest | jq '.name, .short_name, .icons[].src'
+
 ## The update flow from here on
 
 Edit and test here, commit on `main`, push to anchor, then in eig `nix flake update collie`, commit,

@@ -390,6 +390,10 @@ export interface Config {
    * stripped. `collie serve` publishes at this path instead of the root when it is set.
    */
   basePath: string;
+  /** This install's app name, short name and icon directory (bridge/app-identity.ts). Empty = unset. */
+  appName: string;
+  appShortName: string;
+  appIconDir: string;
 }
 
 /**
@@ -680,6 +684,9 @@ export function loadConfig(env: Environment = process.env): Config {
     multiSession: envBool("COLLIE_MULTI_SESSION", true, env),
     skipServe: envBool("COLLIE_SKIP_SERVE", false, env),
     basePath: normaliseBasePath(env.COLLIE_BASE_PATH),
+    appName: env.COLLIE_APP_NAME ?? "",
+    appShortName: env.COLLIE_APP_SHORT_NAME ?? "",
+    appIconDir: env.COLLIE_APP_ICON_DIR ?? "",
   };
 }
 

@@ -1,5 +1,14 @@
 import { mkdir } from "node:fs/promises";
 import { fingerprint, pulseStream } from "./pulse.ts";
+import {
+  APP_ICON_ROUTE_PREFIX,
+  appIdentityWire,
+  applyAppIdentity,
+  hasAppIdentity,
+  isAppIconFile,
+  loadAppIdentity,
+  type AppIdentity,
+} from "./app-identity.ts";
 import { homedir } from "node:os";
 import { extname, join, normalize, sep } from "node:path";
 import { createAccessGate } from "./access-jwt.ts";
@@ -80,6 +89,7 @@ import { MUX_LOGO_PATH, OPERATOR_FONTS_PATH, journalAgentOf, toPaneWire } from "
 import type {
   ActionResponse,
   AgentView,
+  AppIdentityWire,
   BridgeConfig,
   CreateResponse,
   WorktreeListResponse,
@@ -587,6 +597,8 @@ export function bridgeConfigBody(opts: {
    * handler, so an absent key on the wire means an older bridge and nothing else.
    */
   upload?: UploadCapability;
+  /** This install's own name and icons (bridge/app-identity.ts). Omitted when none is configured. */
+  app?: AppIdentityWire;
 }): BridgeConfig {
   const mode = modeForWire(opts.mode);
   const mine = opts.operatorCommands ?? [];
@@ -617,6 +629,8 @@ export function bridgeConfigBody(opts: {
   // Same omit-when-absent rule, and the same reading on the other end: no key is an older bridge,
   // which the phone falls back to the pre-attachment contract for (images, 10 MB).
   if (opts.upload !== undefined) wire.upload = opts.upload;
+  // Omit-when-absent, so an install that names nothing ships the body it always did.
+  if (opts.app !== undefined) wire.app = opts.app;
   return wire;
 }
 
@@ -1337,6 +1351,8 @@ export function startServer(opts: {
 
   // Cloudflare Access, verified rather than assumed (#341, ADR 0081). Null unless configured.
   const accessGate = createAccessGate(cfg);
+  // This install's name and icons (bridge/app-identity.ts), read once: a restart is how they change.
+  const appIdentity = loadAppIdentity(cfg);
   accessGate?.start();
 
   const server = Bun.serve({
@@ -1715,6 +1731,7 @@ export function startServer(opts: {
               imageTypes: [...IMAGE_EXTS],
               textTypes: [...TEXT_EXTS, ...cfg.uploadExtraTypes],
             },
+            app: appIdentityWire(appIdentity),
           }),
           req.headers.get("accept-encoding"),
         );
@@ -2248,6 +2265,25 @@ export function startServer(opts: {
       // proxy claimed it — say so, instead of letting the SPA fallback answer with the app shell and
       // leave the operator staring at the UI they were trying to escape.
       if (isReservedAuthPath(pathname)) return reservedAuthPlaceholder();
+
+      // ── This install's identity: its manifest and its icons (bridge/app-identity.ts) ──
+      // Ungated exactly as the static files they stand in for. The manifest is left out of the
+      // service worker's precache, so this answer is the one an installed app re-reads; with nothing
+      // configured it falls through and goes out as built.
+      if (pathname === "/manifest.webmanifest" && req.method === "GET" && hasAppIdentity(appIdentity)) {
+        const named = await serveAppManifest(appIdentity, req.headers.get("accept-encoding"));
+        if (named !== null) return named;
+      }
+      if (pathname.startsWith(APP_ICON_ROUTE_PREFIX) && req.method === "GET") {
+        const file = pathname.slice(APP_ICON_ROUTE_PREFIX.length);
+        const icon = isAppIconFile(file) ? appIdentity.icons.get(file) : undefined;
+        if (icon === undefined) return text("not found", 404);
+        return secure(
+          new Response(new Uint8Array(icon.bytes), {
+            headers: { "content-type": "image/png", "cache-control": "no-cache" },
+          }),
+        );
+      }
 
       // ── Static PWA (with SPA fallback) ───────────────────────────────────
       return serveStatic(pathname, req.headers.get("accept-encoding"), WEB_DIR, cfg.basePath);
@@ -4600,6 +4636,26 @@ behind your own reverse proxy</em> in the README.</p>
       },
     }),
   );
+}
+
+/**
+ * The built manifest with this install's name and icons laid over it, or null when the built file
+ * cannot be read as JSON (the caller then serves the file as it lies). `no-cache`, like every
+ * mutable file the bridge serves, so a renamed install is re-read rather than remembered.
+ */
+async function serveAppManifest(identity: AppIdentity, acceptEncoding: string | null): Promise<Response | null> {
+  let built: JsonObject | null;
+  try {
+    // SAFETY: JSON.parse returns a JSON value by definition; asJsonRecord narrows it to an object.
+    built = asJsonRecord(JSON.parse(await Bun.file(join(WEB_DIR, "manifest.webmanifest")).text()) as JsonValue);
+  } catch {
+    return null;
+  }
+  if (built === null) return null;
+  const response = json(applyAppIdentity(built, identity), acceptEncoding);
+  response.headers.set("content-type", "application/manifest+json; charset=utf-8");
+  response.headers.set("cache-control", "no-cache");
+  return response;
 }
 
 export async function serveStatic(

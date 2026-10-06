@@ -1221,6 +1221,18 @@ export interface CacheWatchListResponse {
 }
 
 /** GET /api/config — bridge capabilities and the build id (push setup + stale-cache detection). */
+/**
+ * This install's own name and icons, when the operator set them (`bridge/app-identity.ts`). The page
+ * sets its title, iOS's home-screen title and the touch icon from it at runtime. Omitted entirely
+ * when nothing is configured. Icon URLs are relative to the app's mount.
+ */
+export interface AppIdentityWire {
+  name?: string;
+  shortName?: string;
+  appleTouchIcon?: string;
+  favicon?: string;
+}
+
 export interface BridgeConfig {
   push: boolean;
   vapidPublicKey: string;
@@ -1269,6 +1281,8 @@ export interface BridgeConfig {
    * `COLLIE_MAX_UPLOAD_MB` still answers for itself when the bytes arrive. See docs/configure.md.
    */
   upload?: UploadCapability;
+  /** This install's name and icons; see {@link AppIdentityWire}. */
+  app?: AppIdentityWire;
 }
 
 /**

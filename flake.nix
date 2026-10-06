@@ -87,6 +87,17 @@
         }
       );
 
+      # One install's icon set from an emoji and a colour, for COLLIE_APP_ICON_DIR
+      # (packaging/nix/app-icons.nix, WIRING.md). A function of the caller's own `pkgs`, so a fleet
+      # renders it with the nixpkgs it already has.
+      lib.appIcons =
+        {
+          pkgs,
+          emoji,
+          colour,
+        }:
+        pkgs.callPackage ./packaging/nix/app-icons.nix { inherit emoji colour; };
+
       devShells = forEachSystem (pkgs: {
         default = pkgs.mkShell {
           name = "collie";

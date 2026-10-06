@@ -1383,6 +1383,18 @@ export interface FoldersResponse {
   home: string;
 }
 
+/**
+ * This install's own name and icons, when the operator set them (mirrors bridge/types.ts). The page
+ * sets its title, iOS's home-screen title and the touch icon from it at runtime. Omitted entirely
+ * when nothing is configured. Icon URLs are relative to the app's mount.
+ */
+export interface AppIdentityWire {
+  name?: string;
+  shortName?: string;
+  appleTouchIcon?: string;
+  favicon?: string;
+}
+
 export interface BridgeConfig {
   push: boolean;
   vapidPublicKey: string;
@@ -1425,6 +1437,8 @@ export interface BridgeConfig {
    * mid-upgrade operator sees the old picker rather than an empty one.
    */
   upload?: UploadCapability;
+  /** This install's name and icons; see {@link AppIdentityWire}. */
+  app?: AppIdentityWire;
 }
 
 /**

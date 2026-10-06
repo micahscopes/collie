@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 
 import { fetchConfig } from "@/lib/api";
+import { applyAppIdentity } from "@/lib/app-identity";
 import { acceptOperatorFonts, applyOperatorFonts, type OperatorFontFace } from "@/lib/operator-fonts";
 import { designPrefs, subscribeDesign } from "@/lib/design";
 import type {
@@ -87,6 +88,9 @@ export function loadOperatorCommands(): Promise<void> {
       currentMux = cfg.mux ?? null;
       currentStt = cfg.stt ?? null;
       currentUpload = cfg.upload ?? null;
+      // This install's name and icons for the page itself (lib/app-identity.ts). Once per load, here,
+      // for the reason operator fonts are applied here: no component has to be mounted for it.
+      applyAppIdentity(cfg.app);
       loaded = true;
       emit();
     } catch {
