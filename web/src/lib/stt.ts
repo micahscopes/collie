@@ -173,8 +173,9 @@ export function __resetHandsFree(): void {
 //
 // A per-device LAYOUT choice, beside hands-free and of the same shape. With it on, the composer row
 // is a single wide button (components/voice-bar.tsx): hold to talk and release to send, or tap to
-// start and tap again to send. A finished clip takes the hands-free path, with the same guards and
-// the same fall-backs into the draft (composer.tsx § acceptTranscript). OFF by default.
+// start and tap again to finish. A finished clip goes where hands-free says: sent at once with
+// hands-free on, otherwise into the draft, and the field comes back to review it
+// (composer.tsx § acceptTranscript). OFF by default.
 
 const VOICE_MODE_KEY = "collie:voice-mode:v1";
 

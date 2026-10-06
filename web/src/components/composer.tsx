@@ -622,7 +622,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
   // A chip is something to send (ADR 0060), so a box holding only chips shows Send, not the mic.
   const hasDraft = input.trim() !== "" || attachments.length > 0;
   const micIsPrimary = stt !== null && !direct.active && !hasDraft;
-  const voiceActive = voiceMode && stt?.available === true && !direct.active;
+  // A draft to review takes the row back from the big button: without hands-free, a finished clip
+  // lands in the draft (acceptTranscript), and the field has to be there to read, edit and send it.
+  const voiceActive = voiceMode && stt?.available === true && !direct.active && !hasDraft;
 
   /**
    * What happens to a finished transcript.
@@ -644,9 +646,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(function Compo
    */
   function acceptTranscript(transcript: string) {
     const draftEmpty = inputValueRef.current.trim() === "" && attachmentsRef.current.length === 0;
-    // Voice mode is hands-free by construction: the big button has no draft to review in.
+    // Only hands-free sends unread. Voice mode is a layout: without hands-free its clip lands in the
+    // draft like any other, and the field comes back to show it (`voiceActive` yields to a draft).
     const mayHandsFree =
-      (handsFree || voiceActive) && draftEmpty && noEchoRef.current === null && !locked && !dialogPresent;
+      handsFree && draftEmpty && noEchoRef.current === null && !locked && !dialogPresent;
     if (mayHandsFree) {
       void send(transcript, false);
       return;

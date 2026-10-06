@@ -12,8 +12,8 @@ import { pressDown, pressUp, type Press } from "@/lib/voice-press";
 //
 // Hold it to talk and let go to send, or tap it once to start and once more to send; the two are
 // told apart by lib/voice-press.ts, so neither needs a setting. What a finished clip does is the
-// composer's business (`acceptTranscript`): in voice mode it goes out through the guarded send, and
-// falls back into the draft where hands-free would.
+// composer's business (`acceptTranscript`): with hands-free on it goes out through the guarded
+// send; otherwise it lands in the draft and the field returns for review.
 //
 // The slot at the left is the way back to typing while idle and the discard while a clip is live.
 // It sits where the field's left edge was, so the big button keeps the thumb's side of the row.

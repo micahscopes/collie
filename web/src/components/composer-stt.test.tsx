@@ -7,7 +7,7 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 
 import { clearStatus, useStatus } from "@/lib/status";
 import type { BridgeConfig } from "@/lib/types";
-import { __resetHandsFree, setHandsFreeEnabled } from "@/lib/stt";
+import { __resetHandsFree, __resetVoiceMode, setHandsFreeEnabled, setVoiceModeEnabled } from "@/lib/stt";
 import { __resetOperatorCommands } from "@/lib/operator-config";
 import { server } from "@/test/setup";
 import { recordReply } from "@/test/handlers";
@@ -141,6 +141,7 @@ beforeAll(() => {
 beforeEach(() => {
   clearStatus();
   __resetHandsFree();
+  __resetVoiceMode();
   // The config store caches one successful read for the life of a page; each case is a page.
   __resetOperatorCommands();
   installFakeMediaRecorder();
@@ -148,6 +149,7 @@ beforeEach(() => {
 afterEach(() => {
   uninstallFakeMediaRecorder();
   __resetHandsFree();
+  __resetVoiceMode();
   __resetOperatorCommands();
 });
 
@@ -368,6 +370,54 @@ describe("Composer — hands-free", () => {
     // has read, so the two are combined in the box and the operator still presses Send.
     await waitFor(() => expect(box).toHaveValue("typed by hand and this"));
     expect(replies).toBe(0);
+  });
+});
+
+describe("Composer — voice mode", () => {
+  /** Tap the big talk button, wait for the recorder the tap created. */
+  async function startVoiceModeRecording(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(await screen.findByRole("button", { name: /hold to talk/i }));
+    await waitFor(() => expect(FakeMediaRecorder.instances).toHaveLength(1));
+    return FakeMediaRecorder.instances[0]!;
+  }
+
+  it("without hands-free, brings the field back holding the words, and sends nothing", async () => {
+    const user = userEvent.setup();
+    setVoiceModeEnabled(true);
+    let replies = 0;
+    server.use(
+      configHandler(CONFIG_WITH_STT),
+      sttHandler("read me first"),
+      replyHandler(() => (replies += 1)),
+    );
+    renderComposer();
+    const recorder = await startVoiceModeRecording(user);
+    // The big button stands in for the field while there is nothing to review.
+    expect(screen.queryByPlaceholderText(/type a reply/i)).toBeNull();
+    act(() => recorder.finish());
+
+    // Voice mode is a layout, not consent to send unread: only hands-free does that.
+    expect(await screen.findByPlaceholderText(/type a reply/i)).toHaveValue("read me first");
+    expect(replies).toBe(0);
+  });
+
+  it("with hands-free, sends through the guarded path", async () => {
+    const user = userEvent.setup();
+    setVoiceModeEnabled(true);
+    setHandsFreeEnabled(true);
+    const bodies: { text: string; submit?: boolean }[] = [];
+    server.use(
+      configHandler(CONFIG_WITH_STT),
+      sttHandler("ship it"),
+      replyHandler((body) => bodies.push(body)),
+    );
+    renderComposer();
+    const recorder = await startVoiceModeRecording(user);
+    act(() => recorder.finish());
+
+    await waitFor(() => expect(bodies.length).toBeGreaterThanOrEqual(2));
+    expect(bodies[0]).toMatchObject({ text: "ship it", submit: false });
+    expect(bodies.at(-1)?.submit).toBe(true);
   });
 });
 
