@@ -505,6 +505,13 @@ const DOWN_TO_MANAGE = /^↓ to (?:manage…?|m(?:a(?:n(?:a(?:g)?)?)?)?…|…)$
 // segment. It is the same clip as a "…" straight after that segment.
 const CLIPPED_AT_SEPARATOR = /\s+·…$/;
 
+// Claude right-aligns a field of its own at the far end of the hint row ("0% until auto-compact",
+// "/rc"), padded out with spaces, so the last " · " segment carries it: "↓ to manage      0% until
+// auto-compact". Read whole, that segment is no status hint, its "↓" reads as a modal's key, and the
+// unread-dialog card covered a working pane (slab, 2026-10-06). A run of two or more spaces is that
+// padding, and no hint holds one, so a segment is split there before its fields are matched.
+const RIGHT_FIELD_PADDING = /\s{2,}/;
+
 function isStatusHint(segment: string): boolean {
   const t = segment.trim();
   return ESC_TO_INTERRUPT.test(t) || DOWN_TO_MANAGE.test(t);
@@ -517,9 +524,16 @@ function isStatusHint(segment: string): boolean {
  * `modalOnScreen` so the box locator and the unread-dialog card agree on what a modal footer is.
  */
 export function namesAModalKey(text: string): boolean {
-  const segments = text.trim().replace(CLIPPED_AT_SEPARATOR, "…").split(SEGMENT_SPLIT);
-  const kept = segments.filter((segment) => !isStatusHint(segment));
-  if (kept.length === segments.length) return namesAMenuKey(text);
+  // The " ·…" fold runs per field, since a clip on a separator can be followed by a right field.
+  const fields = text
+    .trim()
+    .split(SEGMENT_SPLIT)
+    .flatMap((segment) => segment.trim().split(RIGHT_FIELD_PADDING))
+    .map((field) => field.replace(CLIPPED_AT_SEPARATOR, "…"));
+  // Only an exact status hint is set aside, field by field; everything else, a right-aligned field
+  // included, is still matched as a key hint. With nothing set aside the row is read as it always was.
+  const kept = fields.filter((field) => !isStatusHint(field));
+  if (kept.length === fields.length) return namesAMenuKey(text);
   return kept.length > 0 && namesAMenuKey(kept.join(" · "));
 }
 

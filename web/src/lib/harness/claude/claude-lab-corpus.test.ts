@@ -147,9 +147,10 @@ describe("the table and the fixture directory stay in lockstep", () => {
   });
 
   it("the corpus is not vacuous", () => {
-    // 66 promoted from the lab, plus one later regression capture (agents-footer-working-clipped).
-    expect(ENTRIES.length).toBe(67);
-    expect(new Set(ENTRIES.map((e) => e.cols))).toEqual(new Set([40, 41, 59, 60, 82, 83, 120, 200]));
+    // 66 promoted from the lab, plus two later regression captures (agents-footer-working-clipped,
+    // agents-footer-right-field).
+    expect(ENTRIES.length).toBe(68);
+    expect(new Set(ENTRIES.map((e) => e.cols))).toEqual(new Set([40, 41, 59, 60, 82, 83, 120, 200, 256]));
     expect(new Set(ENTRIES.map((e) => e.state)).size).toBeGreaterThan(25);
   });
 });

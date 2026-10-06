@@ -22,6 +22,7 @@ describe("Claude status hints in the footer", () => {
     ["claude--working-esc-to-interrupt.txt", "a turn is running"],
     ["claude--idle-background-shell.txt", "a background shell is running"],
     ["claude-lab--agents-footer-working-clipped--w59.txt", "the hint is clipped after its last word"],
+    ["claude-lab--agents-footer-right-field--w256.txt", "a right-aligned field is padded onto the hint row"],
   ])("%s keeps its input box (%s)", (fixture) => {
     const lines = read(fixture);
     expect(hasInputBox(lines)).toBe(true);
@@ -32,6 +33,7 @@ describe("Claude status hints in the footer", () => {
     "claude--working-esc-to-interrupt.txt",
     "claude--idle-background-shell.txt",
     "claude-lab--agents-footer-working-clipped--w59.txt",
+    "claude-lab--agents-footer-right-field--w256.txt",
   ])(
     "%s draws no unread-dialog card",
     (fixture) => {
@@ -60,6 +62,13 @@ describe("namesAModalKey", () => {
     "⏵⏵ bypass permissions on · 1 shell · esc to interrupt ·…",
     "⏵⏵ bypass permissions on · 2 shells · ← for agents · ↓ to manage…",
     "⏵⏵ bypass permissions on · 2 shells · ← for agents · ↓ to manage ·…",
+    // Claude right-aligns a field of its own at the end of the row, padded with spaces, and on a
+    // narrow pane the clip can land before it.
+    `⏵⏵ bypass permissions on · 1 monitor · esc to interrupt · ← for agents · ↓ to manage${" ".repeat(60)}0% until auto-compact`,
+    `⏵⏵ bypass permissions on (shift+tab to cycle) · esc to interrupt · ← for agents${" ".repeat(40)}/rc`,
+    "⏵⏵ bypass permissions on · 1 shell · esc to interrupt ·…  /rc",
+    "⏵⏵ bypass permissions on · 1 shell · esc to i…   /rc",
+    "⏵⏵ bypass permissions on · ↓ to man…  0% until auto-compact",
   ])("does not take %j for a modal footer", (row) => {
     expect(namesAModalKey(row)).toBe(false);
   });
@@ -77,6 +86,9 @@ describe("namesAModalKey", () => {
     // A clipped modal footer is still one.
     "Esc to cancel…",
     "Enter to select · Esc to cancel ·…",
+    // A real modal hint in the right-aligned field is still a modal's key.
+    "↓ to manage      Esc to cancel",
+    "esc to interrupt ·…   Esc to cancel",
   ])("still takes %j for a modal footer", (row) => {
     expect(namesAModalKey(row)).toBe(true);
   });

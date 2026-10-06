@@ -4,6 +4,20 @@
   "captured": "2026-09-22",
   "entries": [
     {
+      "fixture": "claude-lab--agents-footer-right-field--w256.txt",
+      "cols": 256,
+      "rows": 6,
+      "state": "agents-footer-right-field",
+      "notes": "Claude Code 2.1.287 on slab, 2026-10-06, copied as text from a 256-column pane (the background agent's task line was replaced with neutral words). A turn is running with background agents, and Claude right-aligns \"0% until auto-compact\" at the end of the hint row, padded with spaces after \"↓ to manage\". Read as one segment, the padded field hid the status hint, \"↓\" read as a modal's key, and the unread-dialog card covered the pane.",
+      "expected": {
+        "hasInputBox": true,
+        "draft": null,
+        "tail": "statusline",
+        "dialogLive": false,
+        "blockKind": "raw"
+      }
+    },
+    {
       "fixture": "claude-lab--agents-footer-working-clipped--w59.txt",
       "cols": 59,
       "rows": 40,
