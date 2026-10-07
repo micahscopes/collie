@@ -81,6 +81,20 @@
       }
     },
     {
+      "fixture": "claude-lab--auto-mode-draft-numbered-list--w256.txt",
+      "cols": 256,
+      "rows": 8,
+      "state": "auto-mode-draft-numbered-list",
+      "notes": "Claude Code 2.1.287 on calc-argot-lab, 2026-10-06, copied as text from a 256-column pane (one list item reworded). A numbered list ends the reply above the box, the box holds an unsent draft after a non-breaking space, and the footer reads \"auto mode on · 1 monitor · ← for agents · 1 feedback draft · ↓ to manage\" with \"/rc\" right-aligned. The build before the right-field fix read the padded \"↓ to manage\" as a modal's key and drew the unread-dialog card.",
+      "expected": {
+        "hasInputBox": true,
+        "draft": "go with your recommendations",
+        "tail": "statusline",
+        "dialogLive": false,
+        "blockKind": "raw"
+      }
+    },
+    {
       "fixture": "claude-lab--compacting--w82.txt",
       "cols": 82,
       "rows": 49,
@@ -215,6 +229,20 @@
       "expected": {
         "hasInputBox": true,
         "draft": "list the files in src",
+        "tail": "statusline",
+        "dialogLive": false,
+        "blockKind": "raw"
+      }
+    },
+    {
+      "fixture": "claude-lab--feedback-survey-above-draft--w256.txt",
+      "cols": 256,
+      "rows": 8,
+      "state": "feedback-survey-above-draft",
+      "notes": "Claude Code 2.1.287 on slab, 2026-10-06, copied as text from a 256-column pane. Claude's session survey (\"1: Bad  2: Fine  3: Good  0: Dismiss\") sits above a live box holding a draft; the box owns the keyboard, so it reads as a composer, not a dialog. \"/rc\" is right-aligned on the hint row.",
+      "expected": {
+        "hasInputBox": true,
+        "draft": "go ahead and deploy the voice fixes",
         "tail": "statusline",
         "dialogLive": false,
         "blockKind": "raw"

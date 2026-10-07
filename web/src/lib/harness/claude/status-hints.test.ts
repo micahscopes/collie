@@ -23,6 +23,8 @@ describe("Claude status hints in the footer", () => {
     ["claude--idle-background-shell.txt", "a background shell is running"],
     ["claude-lab--agents-footer-working-clipped--w59.txt", "the hint is clipped after its last word"],
     ["claude-lab--agents-footer-right-field--w256.txt", "a right-aligned field is padded onto the hint row"],
+    ["claude-lab--auto-mode-draft-numbered-list--w256.txt", "auto mode, a draft, a numbered list above"],
+    ["claude-lab--feedback-survey-above-draft--w256.txt", "the session survey above a draft"],
   ])("%s keeps its input box (%s)", (fixture) => {
     const lines = read(fixture);
     expect(hasInputBox(lines)).toBe(true);
@@ -34,6 +36,8 @@ describe("Claude status hints in the footer", () => {
     "claude--idle-background-shell.txt",
     "claude-lab--agents-footer-working-clipped--w59.txt",
     "claude-lab--agents-footer-right-field--w256.txt",
+    "claude-lab--auto-mode-draft-numbered-list--w256.txt",
+    "claude-lab--feedback-survey-above-draft--w256.txt",
   ])(
     "%s draws no unread-dialog card",
     (fixture) => {
