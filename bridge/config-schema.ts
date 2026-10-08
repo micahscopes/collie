@@ -281,7 +281,7 @@ export const CONFIG_SETTINGS: readonly ConfigSetting[] = [
     section: "network",
     kind: "list",
     default: [],
-    doc: "Extra request origins beyond loopback.",
+    doc: "Extra request origins to trust besides the collie's own. A loopback origin is not trusted unless listed.",
     configField: "allowedOrigins",
   },
   {

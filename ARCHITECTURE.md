@@ -431,8 +431,9 @@ door (tailnet-only by default; one per **crew** — §2.1). These four are genui
   (`default-src 'self'`), so an escaping miss can't run injected script that calls back into the
   socket.
 - **A same-origin gate on every API request** — accepted only when the browser's `Origin` host equals
-  the `Host` header the bridge receives (loopback always allowed), so a page on any other tailnet
-  device can't CSRF the bridge. With a plain `tailscale serve` on the MagicDNS name these match
+  the `Host` header the bridge receives, so a page on any other tailnet device can't CSRF the
+  bridge. A loopback `Origin` is not trusted by its name: any app on a phone can serve a page from
+  its own localhost, so `http://localhost…` is just another foreign origin unless listed. With a plain `tailscale serve` on the MagicDNS name these match
   automatically (no config). When Collie is fronted by a *different* public hostname or an extra
   reverse proxy / TLS terminator (custom domain, load balancer, Headscale + upstream TLS, or a
   reverse-proxy front door — [docs/deployment.md → Variant C](./docs/deployment.md#variant-c--reverse-proxy-as-the-only-front-door-no-tailscale)),

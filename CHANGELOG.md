@@ -39,6 +39,7 @@ Running a crew? Update the lead first; members follow on their own. Details:
 - **A narrow pane with a running turn no longer shows the unread-dialog card.** When the footer was cut off right after a whole hint, as in "esc to interrupt…", Collie read it as a dialog asking for Esc, lost the input box and drew "Collie cannot read this dialog". It showed whenever Claude was working with background agents in a pane about 59 columns wide.
 - **A pasted reply or voice note reads as itself in History, Chat and the queue.** Claude Code records a bracketed paste between its own `pasted_content` tags, and Collie drew those tags as part of the message. In the queue row they ate the start of its 200 characters, so a waiting voice note showed the tag and a fragment. The tags are now removed, and a queued message that is cut ends in "…".
 - **A right-aligned field on the footer no longer shows the unread-dialog card.** Claude pads a field such as "0% until auto-compact" onto the end of its hint row, and Collie read the hint before it, "↓ to manage", as a dialog asking for a key. It showed over a working pane with background agents.
+- **A page on the phone's own localhost can no longer drive Collie.** The same-origin check trusted any loopback origin, so a page any app served from the phone's localhost could send replies and keys to every collie the phone could reach. Only the collie's own origin, and origins listed in `COLLIE_ALLOWED_ORIGINS`, are trusted now. Found by box-door-f8's portal check.
 
 ### Packaging
 
